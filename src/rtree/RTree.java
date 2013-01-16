@@ -151,7 +151,7 @@ public class RTree
 			else
 				list = n.children;
 
-			double maxD = Double.MIN_VALUE;
+			double maxD = Double.NEGATIVE_INFINITY;
 			AABB box = new AABB();
 			for(int i=0; i<list.size(); i++)
 				for(int j=0; j<list.size(); j++)
@@ -208,7 +208,7 @@ public class RTree
 					g2.children.size() < maxSize - minSize + 1)
 			{
 				// Pick next
-				double difmax = Double.MIN_VALUE;
+				double difmax = Double.NEGATIVE_INFINITY;
 				int nmax_index = -1;
 				for(int i=0; i<n.children.size(); i++)
 				{
@@ -276,7 +276,7 @@ public class RTree
 					g2.data.size() < maxSize - minSize + 1)
 			{
 				// Pick next
-				double difmax = Double.MIN_VALUE;
+				double difmax = Double.NEGATIVE_INFINITY;
 				int nmax_index = -1;
 				for(int i=0; i<n.data.size(); i++)
 				{
@@ -418,11 +418,11 @@ public class RTree
 	 * @param py Point Y coordinate
 	 * @param pz Point Z coordinate
 	 */
-	public void query(Collection<? super BoundedObject> results, int px, int py, int pz)
+	public void query(Collection<? super BoundedObject> results, double px, double py, double pz)
 	{
 		query(results, px, py, pz, root);
 	}
-	private void query(Collection<? super BoundedObject> results, int px, int py, int pz, Node node)
+	private void query(Collection<? super BoundedObject> results, double px, double py, double pz, Node node)
 	{
 		if(node == null) return;
 		if(node.isLeaf())
@@ -442,11 +442,11 @@ public class RTree
 	/**
 	 * Returns one item that intersects the query point, or null if no items intersect that point.
 	 */
-	public BoundedObject queryOne(int px, int py, int pz)
+	public BoundedObject queryOne(double px, double py, double pz)
 	{
 		return queryOne(px,py,pz,root);
 	}
-	private BoundedObject queryOne(int px, int py, int pz, Node node)
+	private BoundedObject queryOne(double px, double py, double pz, Node node)
 	{
 		if(node == null) return null;
 		if(node.isLeaf())

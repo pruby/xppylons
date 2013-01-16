@@ -33,14 +33,24 @@ public class XpPylons extends JavaPlugin {
         
         log.info("[XpPylons] Running test...");
         Random rand = new Random();
-        // Make 1000 random pylons
-        for (int i = 0; i < 1000; i++) {
-            double x = rand.nextInt(2001) - 1001;
+        // Make 1000000 random pylons
+        for (int i = 0; i < 200000; i++) {
+            double x = rand.nextInt(30001) - 15001;
             double y = 65;
-            double z = rand.nextInt(2001) - 1001;
+            double z = rand.nextInt(30001) - 15001;
             pylons.addPylon(x, y, z);
         }
-        log.info("[XpPylons] Stored random pylons");
+        log.info("[XpPylons] Stored 200,000 random pylons");
+        
+        // Query 1000000 random points, count pylons influencing them
+        int count = 0;
+        for (int i = 0; i < 10000000; i++) {
+            double x = rand.nextInt(2001) - 1001;
+            double z = rand.nextInt(2001) - 1001;
+            List<Pylon> pylonsAffecting = pylons.pylonsInfluencing(x, z);
+            count = count + pylonsAffecting.size();
+        }
+        log.info("[XpPylons] Queried 10M random points, encountered " + Integer.toString(count) + " pylons");
         
         ConsoleCommandSender console = getServer().getConsoleSender();
         console.addAttachment(this, "xppylons.console", true);
