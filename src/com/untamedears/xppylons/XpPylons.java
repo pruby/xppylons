@@ -20,6 +20,8 @@ public class XpPylons extends JavaPlugin {
     private static final Logger log = Logger.getLogger("XpPylons");
     private static XpPylons plugin;
     
+    private PylonSet pylons;
+    
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args){
         return true;
     }
