@@ -29,7 +29,9 @@ public class XpPylons extends JavaPlugin {
     public void onEnable() {
         plugin = this;
         
-        pylons = new PylonSet(this);
+        saveDefaultConfig();
+        PylonConfig config = PylonConfig.loadConfig(getConfig().getConfigurationSection("overworld.pylons"));
+        pylons = new PylonSet(this, config);
         
         log.info("[XpPylons] Running test...");
         Random rand = new Random();
@@ -38,7 +40,8 @@ public class XpPylons extends JavaPlugin {
             double x = rand.nextInt(30001) - 15001;
             double y = 65;
             double z = rand.nextInt(30001) - 15001;
-            pylons.addPylon(x, y, z);
+            int height = 10 + rand.nextInt(51);
+            pylons.addPylon(x, y, z, height);
         }
         log.info("[XpPylons] Stored 200,000 random pylons");
         

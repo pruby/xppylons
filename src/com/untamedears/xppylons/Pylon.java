@@ -7,13 +7,15 @@ import rtree.BoundedObject;
 public class Pylon implements BoundedObject {
     private PylonSet cluster;
     private double x, y, z;
+    private int height;
     private Pylon.EffectBounds influence;
     
-    public Pylon(PylonSet cluster, double x, double y, double z) {
+    public Pylon(PylonSet cluster, double x, double y, double z, int height) {
         this.cluster = cluster;
         this.x = x;
         this.y = y;
         this.z = z;
+        this.height = height;
         this.influence = new Pylon.EffectBounds(this);
     }
     
@@ -36,8 +38,14 @@ public class Pylon implements BoundedObject {
         return z;
     }
     
+    public int getHeight() {
+        return height;
+    }
+    
     public double getRadiusOfEffect() {
-        return 100.0;
+        double maxHeight = cluster.getConfig().getMaxPylonHeight();
+        double maxRadius = cluster.getConfig().getMaximumRadius();
+        return Math.sqrt(height / maxHeight) * maxRadius;
     }
     
     public Pylon.EffectBounds getInfluence() {

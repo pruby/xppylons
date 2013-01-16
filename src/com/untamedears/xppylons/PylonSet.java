@@ -10,12 +10,15 @@ import rtree.RTree;
 
 public class PylonSet {
     private XpPylons plugin;
+    private PylonConfig config;
     private Set<Pylon> pylons;
     private RTree pylonStructures;
     private RTree pylonInfluences;
     
-    public PylonSet(XpPylons plugin) {
+    public PylonSet(XpPylons plugin, PylonConfig config) {
         this.plugin = plugin;
+        this.config = config;
+        
         pylons = new HashSet<Pylon>();
         pylonStructures = new RTree(2, 4);
         pylonInfluences = new RTree(2, 4);
@@ -27,8 +30,8 @@ public class PylonSet {
         pylonInfluences.insert(pylon.getInfluence());
     }
     
-    public void addPylon(double x, double y, double z) {
-        addPylon(new Pylon(this, x, y, z));
+    public void addPylon(double x, double y, double z, int height) {
+        addPylon(new Pylon(this, x, y, z, height));
     }
     
     public void removePylon(Pylon pylon) {
@@ -57,5 +60,9 @@ public class PylonSet {
         }
         
         return pylonsInfluencing;
+    }
+    
+    public PylonConfig getConfig() {
+        return config;
     }
 }
