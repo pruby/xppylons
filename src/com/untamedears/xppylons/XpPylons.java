@@ -31,6 +31,17 @@ public class XpPylons extends JavaPlugin {
         
         pylons = new PylonSet(this);
         
+        log.info("[XpPylons] Running test...");
+        Random rand = new Random();
+        // Make 1000 random pylons
+        for (int i = 0; i < 1000; i++) {
+            double x = rand.nextInt(2001) - 1001;
+            double y = 65;
+            double z = rand.nextInt(2001) - 1001;
+            pylons.addPylon(x, y, z);
+        }
+        log.info("[XpPylons] Stored random pylons");
+        
         ConsoleCommandSender console = getServer().getConsoleSender();
         console.addAttachment(this, "xppylons.console", true);
         log.info("[XpPylons] XP Pylons enabled.");
