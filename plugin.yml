@@ -1,11 +1,11 @@
 name: "XP Pylons"
 main: com.untamedears.xppylons.XpPylons
 version: 0.1
-description: XP harvesting pylons
+description: "XP harvesting pylons"
 author: pruby
 database: false
-commands: []
+commands: {}
 permissions:
   xppylons.console:
-    description: Console commands for XP Pylons
+    description: "Console commands for XP Pylons"
     default: false

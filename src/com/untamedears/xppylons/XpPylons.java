@@ -29,6 +29,8 @@ public class XpPylons extends JavaPlugin {
     public void onEnable() {
         plugin = this;
         
+        pylons = new PylonSet(this);
+        
         ConsoleCommandSender console = getServer().getConsoleSender();
         console.addAttachment(this, "xppylons.console", true);
         log.info("[XpPylons] XP Pylons enabled.");
