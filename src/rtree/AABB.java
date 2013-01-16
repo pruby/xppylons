@@ -7,8 +7,8 @@ package rtree;
  */
 public class AABB implements BoundedObject
 {
-	int minx, miny, minz;
-	int maxx, maxy, maxz;
+	double minx, miny, minz;
+	double maxx, maxy, maxz;
 
 	public AABB()
 	{
@@ -16,20 +16,20 @@ public class AABB implements BoundedObject
 		maxx = maxy = maxz = 0;
 	}
 
-	public void setMinCorner(int px, int py, int pz)
+	public void setMinCorner(double px, double py, double pz)
 	{
 		minx = px;
 		miny = py;
 		minz = pz;
 	}
-	public void setMaxCorner(int px, int py, int pz)
+	public void setMaxCorner(double px, double py, double pz)
 	{
 		maxx = px;
 		maxy = py;
 		maxz = pz;
 	}
 
-	public boolean contains(int px, int py, int pz)
+	public boolean contains(double px, double py, double pz)
 	{
 		return px >= minx && px <= maxx &&
 				py >= miny && py <= maxy &&
@@ -51,11 +51,11 @@ public class AABB implements BoundedObject
 	 * Returns the amount of overlap between 2 AABBs. Result will be negative if they
 	 * do not overlap.
 	 */
-	public int getOverlap(AABB other)
+	public double getOverlap(AABB other)
 	{
-		int overlapx =  (maxx - minx +other.maxx - other.minx) - Math.abs(minx+maxx-other.minx-other.minx);
-		int overlapy =  (maxy - miny +other.maxy - other.miny) - Math.abs(minx+maxy-other.miny-other.miny);
-		int overlapz =  (maxz - minz +other.maxz - other.minz) - Math.abs(minx+maxz-other.minz-other.minz);
+		double overlapx =  (maxx - minx +other.maxx - other.minx) - Math.abs(minx+maxx-other.minx-other.minx);
+		double overlapy =  (maxy - miny +other.maxy - other.miny) - Math.abs(minx+maxy-other.miny-other.miny);
+		double overlapz =  (maxz - minz +other.maxz - other.minz) - Math.abs(minx+maxz-other.minz-other.minz);
 		
 		return Math.max(overlapx, Math.max(overlapy, overlapz));
 		
@@ -64,9 +64,9 @@ public class AABB implements BoundedObject
 	/**
 	 * Returns the amount that other will need to be expanded to fit this.
 	 */
-	public int expansionNeeded(AABB other)
+	public double expansionNeeded(AABB other)
 	{
-		int total = 0;
+		double total = 0;
 
 		if(other.minx < minx) total += minx - other.minx;
 		if(other.maxx > maxx) total += other.maxx - maxx;
@@ -98,7 +98,7 @@ public class AABB implements BoundedObject
 		return this;
 	}
 
-	public int getVolume()
+	public double getVolume()
 	{
 		return (maxx - minx) * (maxy - miny) * (maxz - minz);
 	}

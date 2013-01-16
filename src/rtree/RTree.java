@@ -151,7 +151,7 @@ public class RTree
 			else
 				list = n.children;
 
-			int maxD = Integer.MIN_VALUE;
+			double maxD = Double.MIN_VALUE;
 			AABB box = new AABB();
 			for(int i=0; i<list.size(); i++)
 				for(int j=0; j<list.size(); j++)
@@ -160,7 +160,7 @@ public class RTree
 					BoundedObject n1 = list.get(i), n2 = list.get(j);
 					n1.getBounds().cloneInto(box);
 					box.merge(n2.getBounds());
-					int d = box.getVolume() - n1.getBounds().getVolume() - n2.getBounds().getVolume();
+					double d = box.getVolume() - n1.getBounds().getVolume() - n2.getBounds().getVolume();
 					if(d > maxD)
 					{
 						maxD = d;
@@ -208,12 +208,12 @@ public class RTree
 					g2.children.size() < maxSize - minSize + 1)
 			{
 				// Pick next
-				int difmax = Integer.MIN_VALUE;
+				double difmax = Double.MIN_VALUE;
 				int nmax_index = -1;
 				for(int i=0; i<n.children.size(); i++)
 				{
 					Node node = n.children.get(i);
-					int dif = Math.abs(node.box.expansionNeeded(g1.box) - node.box.expansionNeeded(g2.box));
+					double dif = Math.abs(node.box.expansionNeeded(g1.box) - node.box.expansionNeeded(g2.box));
 					if(dif > difmax)
 					{
 						difmax = dif;
@@ -227,15 +227,15 @@ public class RTree
 				Node parent = null;
 
 				// ... to the one with the least expansion
-				int overlap1 = nmax.box.expansionNeeded(g1.box);
-				int overlap2 = nmax.box.expansionNeeded(g2.box);
+				double overlap1 = nmax.box.expansionNeeded(g1.box);
+				double overlap2 = nmax.box.expansionNeeded(g2.box);
 				if(overlap1 > overlap2) parent = g1;
 				else if(overlap2 > overlap1) parent = g2;
 				else
 				{
 					// Or the one with the lowest volume
-					int vol1 = g1.box.getVolume();
-					int vol2 = g2.box.getVolume();
+					double vol1 = g1.box.getVolume();
+					double vol2 = g2.box.getVolume();
 					if(vol1 > vol2) parent = g2;
 					else if(vol2 > vol1) parent = g1;
 					else
@@ -276,14 +276,14 @@ public class RTree
 					g2.data.size() < maxSize - minSize + 1)
 			{
 				// Pick next
-				int difmax = Integer.MIN_VALUE;
+				double difmax = Double.MIN_VALUE;
 				int nmax_index = -1;
 				for(int i=0; i<n.data.size(); i++)
 				{
 					BoundedObject node = n.data.get(i);
-					int d1 = node.getBounds().expansionNeeded(g1.box);
-					int d2 = node.getBounds().expansionNeeded(g2.box);
-					int dif = Math.abs(d1 - d2);
+					double d1 = node.getBounds().expansionNeeded(g1.box);
+					double d2 = node.getBounds().expansionNeeded(g2.box);
+					double dif = Math.abs(d1 - d2);
 					if(dif > difmax)
 					{
 						difmax = dif;
@@ -296,14 +296,14 @@ public class RTree
 				BoundedObject nmax = n.data.remove(nmax_index);
 
 				// ... to the one with the least expansion
-				int overlap1 = nmax.getBounds().expansionNeeded(g1.box);
-				int overlap2 = nmax.getBounds().expansionNeeded(g2.box);
+				double overlap1 = nmax.getBounds().expansionNeeded(g1.box);
+				double overlap2 = nmax.getBounds().expansionNeeded(g2.box);
 				if(overlap1 > overlap2) g1.data.add(nmax);
 				else if(overlap2 > overlap1) g2.data.add(nmax);
 				else
 				{
-					int vol1 = g1.box.getVolume();
-					int vol2 = g2.box.getVolume();
+					double vol1 = g1.box.getVolume();
+					double vol2 = g2.box.getVolume();
 					if(vol1 > vol2) g2.data.add(nmax);
 					else if(vol2 > vol1) g1.data.add(nmax);
 					else
@@ -530,11 +530,11 @@ public class RTree
 		{
 			AABB box = o.getBounds();
 
-			int maxOverlap = Integer.MAX_VALUE;
+			double maxOverlap = Double.MAX_VALUE;
 			Node maxnode = null;
 			for(int i=0; i<n.children.size(); i++)
 			{
-				int overlap = n.children.get(i).box.expansionNeeded(box);
+				double overlap = n.children.get(i).box.expansionNeeded(box);
 				if((overlap < maxOverlap) || (overlap == maxOverlap && n.children.get(i).box.getVolume() < maxnode.box.getVolume()))
 				{
 					maxOverlap = overlap;
