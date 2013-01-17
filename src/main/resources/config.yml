@@ -8,7 +8,7 @@ materials:
   I: 42 # Iron block
   L: 22 # Lapis block
   O: 49 # Obsidian
-  interaction: 188 # Cauldron
+  interaction: 118 # Cauldron
 items:
   divining: 345 # Compass
   activation: 345 # Compass
@@ -25,7 +25,7 @@ patterns:
     OODOO
     *OOO*
     **O**
-  layer: |
+  level: |
     **L**
     *ILI*
     LLDLL

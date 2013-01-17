@@ -14,6 +14,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -27,6 +28,7 @@ public class XpPylons extends JavaPlugin implements Listener {
     private PylonPattern pylonPattern;
     private int activationItemId;
     private int diviningItemId;
+    private int interactionBlockId;
     
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args){
         return true;
@@ -38,9 +40,9 @@ public class XpPylons extends JavaPlugin implements Listener {
         saveDefaultConfig();
         
         diviningItemId = getConfig().getInt("items.divining");
-        info("Divining with item ID " + Integer.toString(diviningItemId));
         activationItemId = getConfig().getInt("items.activation");
-        info("Activating with item ID " + Integer.toString(activationItemId));
+        interactionBlockId = getConfig().getInt("materials.interaction");
+        info("Interaction with block " + Integer.toString(interactionBlockId));
         
         pylonPattern = new PylonPattern(getConfig());
         
@@ -98,11 +100,14 @@ public class XpPylons extends JavaPlugin implements Listener {
     
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent e) {
-        if (!e.isCancelled() && e.getMaterial().getId() == diviningItemId) {
-            e.getPlayer().sendMessage("You used the divining item");
-        }
-        if (!e.isCancelled() && e.getMaterial().getId() == activationItemId) {
-            e.getPlayer().sendMessage("You used the activation item");
+        if (!e.isCancelled()) {
+            if (e.getAction() == Action.RIGHT_CLICK_BLOCK && e.getMaterial().getId() == activationItemId && e.hasBlock() && e.getClickedBlock().getType().getId() == interactionBlockId) {
+                if (pylonPattern.testBlock(e.getClickedBlock())) {
+                    e.getPlayer().sendMessage("Valid, " + Integer.toString(pylonPattern.countLevels(e.getClickedBlock())) + " levels");
+                }
+            } else if ((e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) && e.getMaterial().getId() == diviningItemId) {
+                e.getPlayer().sendMessage("Divining");
+            }
         }
     }
     
