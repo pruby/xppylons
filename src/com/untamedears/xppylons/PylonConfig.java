@@ -9,21 +9,12 @@ public class PylonConfig {
     private double peakXpPerLevel;
     private double pylonEfficiency;
     
-    public PylonConfig(double maximumRadius, int maxPylonHeight, double averageXpPerLevel, double pylonEfficiency) {
-        this.maximumRadius = maximumRadius;
-        this.maxPylonHeight = maxPylonHeight;
-        this.averageXpPerLevel = averageXpPerLevel;
-        this.peakXpPerLevel = averageXpPerLevel * 2;
-        this.pylonEfficiency = pylonEfficiency;
-    }
-    
-    public static PylonConfig loadConfig(ConfigurationSection section) {
-        double maximumRadius = section.getDouble("maximumRadius");
-        int maxPylonHeight = section.getInt("maxPylonHeight");
-        double averageXpPerLevel = section.getDouble("averageXpPerLevel");        
-        double pylonEfficiency = section.getDouble("pylonEfficiency");
-        
-        return new PylonConfig(maximumRadius, maxPylonHeight, averageXpPerLevel, pylonEfficiency);
+    public PylonConfig(ConfigurationSection section) {
+        maximumRadius = section.getDouble("maximumRadius");
+        maxPylonHeight = section.getInt("maxPylonHeight");
+        averageXpPerLevel = section.getDouble("averageXpPerLevel");
+        peakXpPerLevel = averageXpPerLevel * 2;
+        pylonEfficiency = section.getDouble("pylonEfficiency");
     }
     
     public double getMaximumRadius() {
