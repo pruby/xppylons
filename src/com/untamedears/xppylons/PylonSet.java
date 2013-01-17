@@ -30,7 +30,7 @@ public class PylonSet {
         pylonInfluences.insert(pylon.getInfluence());
     }
     
-    public void addPylon(double x, double y, double z, int height) {
+    public void addPylon(int x, int y, int z, int height) {
         addPylon(new Pylon(this, x, y, z, height));
     }
     
@@ -40,9 +40,27 @@ public class PylonSet {
         pylons.remove(pylon);
     }
     
-    public Pylon pylonAt(double x, double y, double z) {
-        BoundedObject pylonFound = pylonStructures.queryOne(x, y, z);
-        return (Pylon) pylonFound;
+    public Pylon pylonAt(int x, int y, int z) {
+        List<Pylon> pylonsAroundPoint = pylonsAround(x, y, z);
+        for (Pylon pylon : pylonsAroundPoint) {
+            if (((int) pylon.getX()) == x && ((int) pylon.getY()) == y && ((int) pylon.getZ()) == z) {
+                return pylon;
+            }
+        }
+        return null;
+    }
+    
+    public List<Pylon> pylonsAround(double x, double y, double z) {
+        LinkedList<BoundedObject> pylonsAsBoxes = new LinkedList<BoundedObject>();
+        
+        pylonStructures.query(pylonsAsBoxes, x, y, z);
+        
+        LinkedList<Pylon> pylons = new LinkedList<Pylon>();
+        for (BoundedObject pylonAsBox : pylonsAsBoxes) {
+            pylons.add((Pylon) pylonAsBox);
+        }
+        
+        return pylons;
     }
     
     public List<Pylon> pylonsInfluencing(double x, double z) {
