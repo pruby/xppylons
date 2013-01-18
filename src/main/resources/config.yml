@@ -1,6 +1,7 @@
 pylons:
   maximumRadius: 1000
   maxPylonHeight: 64
+  minPylonHeight: 3
   targetXpPerLevelDay: 500
   pylonDepletion: 0.4
 materials:
