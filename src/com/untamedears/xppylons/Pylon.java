@@ -105,7 +105,7 @@ public class Pylon implements BoundedObject {
             }
             
             double draw = 1.0 - residual;
-            double share = getStrengthAt(x, z) * (draw / totalStrength);
+            double share = (getStrengthAt(x, z) / totalStrength) * draw;
             return share;
         }
         
