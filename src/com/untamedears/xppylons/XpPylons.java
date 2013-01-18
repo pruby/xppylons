@@ -27,6 +27,7 @@ public class XpPylons extends JavaPlugin implements Listener {
     private static XpPylons plugin;
     
     private PylonSet pylons;
+    private EnergyField energy;
     
     private PylonPattern pylonPattern;
     private int activationItemId;
@@ -50,6 +51,8 @@ public class XpPylons extends JavaPlugin implements Listener {
         
         PylonConfig config = new PylonConfig(getConfig().getConfigurationSection("pylons"));
         pylons = new PylonSet(this, config);
+        
+        energy = new EnergyField(getConfig().getConfigurationSection("energy"));
         
         ConsoleCommandSender console = getServer().getConsoleSender();
         console.addAttachment(this, "xppylons.console", true);
@@ -140,6 +143,8 @@ public class XpPylons extends JavaPlugin implements Listener {
     }
     
     public void doDivining(Player player) {
+        double energyHere = energy.energyAt(player.getX(), player.getZ());
+        player.sendMessage("Energy here is " + Double.toString(energyHere));
     }
     
     public void togglePylon(Block block, Player player) {

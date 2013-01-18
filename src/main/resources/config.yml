@@ -4,6 +4,11 @@ pylons:
   minPylonHeight: 3
   targetXpPerLevelDay: 500
   pylonDepletion: 0.4
+energy:
+  seed: 256
+  longRangeDistance: 2000
+  midRangeDistance: 300
+  maxTimesBackground: 4
 materials:
   D: 57 # Diamond block
   I: 42 # Iron block
