@@ -83,6 +83,10 @@ public class PylonPattern {
       return pattern;
   }
   
+  public int getOriginalGlowBlockTypeId() {
+      return basePattern[offsetHeight + 1][offsetWidth + 1];
+  }
+  
   public boolean testBlock(Block block) {
       World world = block.getWorld();
       if (world.getEnvironment() != World.Environment.NORMAL) {

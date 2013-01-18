@@ -12,10 +12,13 @@ import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.entity.Player;
+import org.bukkit.World;
+import org.bukkit.Material;
+import org.bukkit.entity.*;
 import org.bukkit.event.*;
-import org.bukkit.event.block.*;
 import org.bukkit.event.player.*;
+import org.bukkit.material.*;
+import org.bukkit.event.block.*;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -88,29 +91,51 @@ public class XpPylons extends JavaPlugin implements Listener {
         }
     }
     
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockBreak(final BlockBreakEvent e) {
-        info("Block break");
-        if (!e.isCancelled()) {
-            final List<Pylon> possiblyDamagedPylons = pylons.pylonsAround(e.getBlock().getX(), e.getBlock().getY(), e.getBlock().getZ());
-            if (!possiblyDamagedPylons.isEmpty()) {
-                getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
-                    @Override 
-                    public void run() {
-                        for (Pylon pylon : possiblyDamagedPylons) {
-                            if (!pylonPattern.checkStructure(e.getBlock().getWorld(), pylon)) {
-                                info("Pylon at " + Integer.toString(pylon.getX()) + ", " + Integer.toString(pylon.getY()) + ", " + Integer.toString(pylon.getZ()) + " damaged, deactivating");
-                                deactivatePylon(pylon);
-                            }
+        final List<Pylon> possiblyDamagedPylons = pylons.pylonsAround(e.getBlock().getX(), e.getBlock().getY(), e.getBlock().getZ());
+        for (Pylon pylon : possiblyDamagedPylons) {
+            if (pylon.getX() == e.getBlock().getX() && pylon.getY() == e.getBlock().getY() + 1 && pylon.getZ() == e.getBlock().getZ()) {
+                // Is the glow block
+                e.setCancelled(true);
+            }
+        }
+        
+        if (!possiblyDamagedPylons.isEmpty()) {
+            getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+                @Override 
+                public void run() {
+                    for (Pylon pylon : possiblyDamagedPylons) {
+                        if (!pylonPattern.checkStructure(e.getBlock().getWorld(), pylon)) {
+                            info("Pylon at " + Integer.toString(pylon.getX()) + ", " + Integer.toString(pylon.getY()) + ", " + Integer.toString(pylon.getZ()) + " damaged, deactivating");
+                            deactivatePylon(pylon, e.getBlock().getWorld());
                         }
                     }
-                }, 1L);
-            }
+                }
+            }, 1L);
         }
     }
     
-    public void deactivatePylon(Pylon pylon) {
+    public void activatePylon(Block block, int levels) {
+        Pylon newPylon = new Pylon(pylons, block.getX(), block.getY(), block.getZ(), levels);
+        pylons.addPylon(newPylon);
+        Block glowBlock = block.getRelative(0, -1, 0);
+        if (glowBlock != null) {
+            glowBlock.setType(Material.GLOWSTONE);
+        }
+    }
+    
+    public void deactivatePylon(Pylon pylon, World world) {
         info("Removing pylon");
+        Block glowBlock = world.getBlockAt(pylon.getX(), pylon.getY() - 1, pylon.getZ());
+        if (glowBlock != null) {
+            info("Got block");
+            if (glowBlock.getType() == Material.GLOWSTONE) {
+                info("Is glowstone");
+                info("Changing glow block back to " + Integer.toString(pylonPattern.getOriginalGlowBlockTypeId()));
+                glowBlock.setTypeId(pylonPattern.getOriginalGlowBlockTypeId());
+            }
+        }
         pylons.removePylon(pylon);
     }
     
@@ -122,15 +147,16 @@ public class XpPylons extends JavaPlugin implements Listener {
           Pylon existingPylon = pylons.pylonAt(block.getX(), block.getY(), block.getZ());
           if (existingPylon != null) {
               player.sendMessage("Deactivated pylon");
-              deactivatePylon(existingPylon);
+              deactivatePylon(existingPylon, block.getWorld());
           } else if (pylonPattern.testBlock(block)) {
               int levels = pylonPattern.countLevels(block);
               if (levels > pylons.getConfig().getMaxPylonHeight()) {
                   levels = pylons.getConfig().getMaxPylonHeight();
               }
-              Pylon newPylon = new Pylon(pylons, block.getX(), block.getY(), block.getZ(), levels);
-              pylons.addPylon(newPylon);
-              player.sendMessage("Activated pylon with " + Integer.toString(levels) + " levels");
+              if (levels >= pylons.getConfig().getMinPylonHeight()) {
+                  activatePylon(block, levels);
+                  player.sendMessage("Activated pylon with " + Integer.toString(levels) + " levels");
+              }
           }
     }
     
