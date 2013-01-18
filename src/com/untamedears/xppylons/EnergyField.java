@@ -22,23 +22,25 @@ public class EnergyField {
         this.world = world;
         
         seed = config.getLong("seed");
+        timeScale = config.getDouble("fieldChangeSeconds");
         longRangeScale = config.getDouble("longRangeDistance");
         midRangeScale = config.getDouble("midRangeDistance");
         maxTimesBackground = config.getDouble("maxTimesBackground");
         
-        Random initGen = new Random(seed);
+        Random initGen = new Random(seed ^ world.getSeed());
         longRangeVariation = new SimplexNoiseGenerator(initGen);
         midRangeVariation = new SimplexNoiseGenerator(initGen);
     }
     
-    public double energyAt(int x, int z) {
+    public double energyAt(double x, double z) {
         double time = (double) world.getTime();
+        
         double longRangeNoise = longRangeVariation.noise(x / longRangeScale, z / longRangeScale, time / timeScale);
         double midRangeNoise = midRangeVariation.noise(x / midRangeScale, z / midRangeScale, time / timeScale);
         
-        double longRangeMultiplier = longRangeVariation + 1.0; // 0 to 2 times
+        double longRangeMultiplier = longRangeNoise + 1.0; // 0 to 2 times
         double midRangeExtra = (midRangeNoise + 1.0) * ((maxTimesBackground - 1.0) / 2.0);
         
-        return longRangeMultiplier * midRangeExtra;
+        return longRangeMultiplier * midRangeExtra + 1.0;
     }
 }

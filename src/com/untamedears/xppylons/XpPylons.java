@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.Random;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.UUID;
 
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
@@ -26,8 +29,9 @@ public class XpPylons extends JavaPlugin implements Listener {
     private static final Logger log = Logger.getLogger("XpPylons");
     private static XpPylons plugin;
     
-    private PylonSet pylons;
-    private EnergyField energy;
+    private PylonConfig config;
+    private Map<World, PylonSet> pylonSets;
+    private Map<World, EnergyField> energyFields;
     
     private PylonPattern pylonPattern;
     private int activationItemId;
@@ -43,16 +47,16 @@ public class XpPylons extends JavaPlugin implements Listener {
         
         saveDefaultConfig();
         
+        pylonSets = new HashMap<World, PylonSet>();
+        energyFields = new HashMap<World, EnergyField>();
+        
         diviningItemId = getConfig().getInt("items.divining");
         activationItemId = getConfig().getInt("items.activation");
         interactionBlockId = getConfig().getInt("materials.interaction");
         
         pylonPattern = new PylonPattern(getConfig());
         
-        PylonConfig config = new PylonConfig(getConfig().getConfigurationSection("pylons"));
-        pylons = new PylonSet(this, config);
-        
-        energy = new EnergyField(getConfig().getConfigurationSection("energy"));
+        this.config = new PylonConfig(getConfig().getConfigurationSection("pylons"));
         
         ConsoleCommandSender console = getServer().getConsoleSender();
         console.addAttachment(this, "xppylons.console", true);
@@ -83,45 +87,95 @@ public class XpPylons extends JavaPlugin implements Listener {
         }
     }
     
-    @EventHandler
+    private void initWorld(World world) {
+        PylonSet worldPylons = new PylonSet(this, config);
+        EnergyField worldEnergy = new EnergyField(world, getConfig().getConfigurationSection("energy"));
+        pylonSets.put(world, worldPylons);
+        energyFields.put(world, worldEnergy);
+    }
+    
+    public PylonSet getPylons(World world) {
+        if (world.getEnvironment() != World.Environment.NORMAL) {
+            return null;
+        }
+        
+        PylonSet worldPylons = pylonSets.get(world);
+        if (worldPylons == null) {
+            initWorld(world);
+            worldPylons = pylonSets.get(world);
+        }
+        return worldPylons;
+    }
+    
+    public EnergyField getEnergyField(World world) {
+        if (world.getEnvironment() != World.Environment.NORMAL) {
+            return null;
+        }
+        
+        EnergyField worldEnergy = energyFields.get(world);
+        if (worldEnergy == null) {
+            initWorld(world);
+            worldEnergy = energyFields.get(world);
+        }
+        return worldEnergy;
+    }
+    
+    @EventHandler(ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent e) {
-        if (!e.isCancelled()) {
+        try {
             if (e.getAction() == Action.RIGHT_CLICK_BLOCK && e.getMaterial().getId() == activationItemId && e.hasBlock() && e.getClickedBlock().getType().getId() == interactionBlockId) {
                 togglePylon(e.getClickedBlock(), e.getPlayer());
             } else if ((e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) && e.getMaterial().getId() == diviningItemId) {
                 doDivining(e.getPlayer());
             }
+        } catch (RuntimeException ex) {
+            severe(ex.getClass().getName());
+            ex.printStackTrace();
+            throw ex;
         }
     }
     
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockBreak(final BlockBreakEvent e) {
-        final List<Pylon> possiblyDamagedPylons = pylons.pylonsAround(e.getBlock().getX(), e.getBlock().getY(), e.getBlock().getZ());
-        for (Pylon pylon : possiblyDamagedPylons) {
-            if (pylon.getX() == e.getBlock().getX() && pylon.getY() == e.getBlock().getY() + 1 && pylon.getZ() == e.getBlock().getZ()) {
-                // Is the glow block
-                e.setCancelled(true);
-            }
-        }
-        
-        if (!possiblyDamagedPylons.isEmpty()) {
-            getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
-                @Override 
-                public void run() {
-                    for (Pylon pylon : possiblyDamagedPylons) {
-                        if (!pylonPattern.checkStructure(e.getBlock().getWorld(), pylon)) {
-                            info("Pylon at " + Integer.toString(pylon.getX()) + ", " + Integer.toString(pylon.getY()) + ", " + Integer.toString(pylon.getZ()) + " damaged, deactivating");
-                            deactivatePylon(pylon, e.getBlock().getWorld());
-                        }
-                    }
+        try {
+            final World world = e.getBlock().getWorld();
+            final PylonSet pylons = getPylons(world);
+            final List<Pylon> possiblyDamagedPylons = pylons.pylonsAround(e.getBlock().getX(), e.getBlock().getY(), e.getBlock().getZ());
+            for (Pylon pylon : possiblyDamagedPylons) {
+                if (pylon.getX() == e.getBlock().getX() && pylon.getY() == e.getBlock().getY() + 1 && pylon.getZ() == e.getBlock().getZ()) {
+                    // Is the glow block
+                    e.setCancelled(true);
                 }
-            }, 1L);
+            }
+            
+            if (!possiblyDamagedPylons.isEmpty()) {
+                scheduleStructureCheck(e.getBlock().getWorld(), possiblyDamagedPylons);
+            }
+        } catch (RuntimeException ex) {
+            severe(ex.getClass().getName());
+            ex.printStackTrace();
+            throw ex;
         }
     }
     
+    private void scheduleStructureCheck(final World world, final List<Pylon> possiblyDamagedPylons) {
+        getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+            @Override 
+            public void run() {
+                for (Pylon pylon : possiblyDamagedPylons) {
+                    if (!pylonPattern.checkStructure(world, pylon)) {
+                        info("Pylon at " + Integer.toString(pylon.getX()) + ", " + Integer.toString(pylon.getY()) + ", " + Integer.toString(pylon.getZ()) + " damaged, deactivating");
+                        deactivatePylon(pylon, world);
+                    }
+                }
+            }
+        }, 1L);
+    }
+    
     public void activatePylon(Block block, int levels) {
-        Pylon newPylon = new Pylon(pylons, block.getX(), block.getY(), block.getZ(), levels);
-        pylons.addPylon(newPylon);
+        World world = block.getWorld();
+        Pylon newPylon = new Pylon(getPylons(world), block.getX(), block.getY(), block.getZ(), levels);
+        getPylons(world).addPylon(newPylon);
         Block glowBlock = block.getRelative(0, -1, 0);
         if (glowBlock != null) {
             glowBlock.setType(Material.GLOWSTONE);
@@ -139,22 +193,25 @@ public class XpPylons extends JavaPlugin implements Listener {
                 glowBlock.setTypeId(pylonPattern.getOriginalGlowBlockTypeId());
             }
         }
-        pylons.removePylon(pylon);
+        getPylons(world).removePylon(pylon);
     }
     
     public void doDivining(Player player) {
-        double energyHere = energy.energyAt(player.getX(), player.getZ());
+        EnergyField field = getEnergyField(player.getWorld()); 
+        double energyHere = field.energyAt(player.getLocation().getX(), player.getLocation().getZ());
         player.sendMessage("Energy here is " + Double.toString(energyHere));
     }
     
     public void togglePylon(Block block, Player player) {
           info("Interact");
-          Pylon existingPylon = pylons.pylonAt(block.getX(), block.getY(), block.getZ());
+          World world = block.getWorld();
+          Pylon existingPylon = getPylons(world).pylonAt(block.getX(), block.getY(), block.getZ());
           if (existingPylon != null) {
               player.sendMessage("Deactivated pylon");
               deactivatePylon(existingPylon, block.getWorld());
           } else if (pylonPattern.testBlock(block)) {
               int levels = pylonPattern.countLevels(block);
+              PylonSet pylons = getPylons(world);
               if (levels > pylons.getConfig().getMaxPylonHeight()) {
                   levels = pylons.getConfig().getMaxPylonHeight();
               }

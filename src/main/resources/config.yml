@@ -6,8 +6,9 @@ pylons:
   pylonDepletion: 0.4
 energy:
   seed: 256
-  longRangeDistance: 2000
-  midRangeDistance: 300
+  longRangeDistance: 10000
+  midRangeDistance: 1000
+  fieldChangeSeconds: 2592000 # 30 days
   maxTimesBackground: 4
 materials:
   D: 57 # Diamond block
