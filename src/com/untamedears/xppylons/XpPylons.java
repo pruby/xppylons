@@ -14,8 +14,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.block.*;
+import org.bukkit.event.player.*;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -42,7 +42,6 @@ public class XpPylons extends JavaPlugin implements Listener {
         diviningItemId = getConfig().getInt("items.divining");
         activationItemId = getConfig().getInt("items.activation");
         interactionBlockId = getConfig().getInt("materials.interaction");
-        info("Interaction with block " + Integer.toString(interactionBlockId));
         
         pylonPattern = new PylonPattern(getConfig());
         
@@ -65,26 +64,6 @@ public class XpPylons extends JavaPlugin implements Listener {
     
     public void runTest() {
         log.info("[XpPylons] Running test...");
-        Random rand = new Random();
-        // Make 1000000 random pylons
-        for (int i = 0; i < 200000; i++) {
-            double x = rand.nextInt(30001) - 15001;
-            double y = 65;
-            double z = rand.nextInt(30001) - 15001;
-            int height = 10 + rand.nextInt(51);
-            pylons.addPylon(x, y, z, height);
-        }
-        log.info("[XpPylons] Stored 200,000 random pylons");
-        
-        // Query 1000000 random points, count pylons influencing them
-        int count = 0;
-        for (int i = 0; i < 10000000; i++) {
-            double x = rand.nextInt(2001) - 1001;
-            double z = rand.nextInt(2001) - 1001;
-            List<Pylon> pylonsAffecting = pylons.pylonsInfluencing(x, z);
-            count = count + pylonsAffecting.size();
-        }
-        log.info("[XpPylons] Queried 10M random points, encountered " + Integer.toString(count) + " pylons");
     }
     
     public void registerEvents(){
@@ -102,13 +81,57 @@ public class XpPylons extends JavaPlugin implements Listener {
     public void onPlayerInteract(PlayerInteractEvent e) {
         if (!e.isCancelled()) {
             if (e.getAction() == Action.RIGHT_CLICK_BLOCK && e.getMaterial().getId() == activationItemId && e.hasBlock() && e.getClickedBlock().getType().getId() == interactionBlockId) {
-                if (pylonPattern.testBlock(e.getClickedBlock())) {
-                    e.getPlayer().sendMessage("Valid, " + Integer.toString(pylonPattern.countLevels(e.getClickedBlock())) + " levels");
-                }
+                togglePylon(e.getClickedBlock(), e.getPlayer());
             } else if ((e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) && e.getMaterial().getId() == diviningItemId) {
-                e.getPlayer().sendMessage("Divining");
+                doDivining(e.getPlayer());
             }
         }
+    }
+    
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onBlockBreak(final BlockBreakEvent e) {
+        info("Block break");
+        if (!e.isCancelled()) {
+            final List<Pylon> possiblyDamagedPylons = pylons.pylonsAround(e.getBlock().getX(), e.getBlock().getY(), e.getBlock().getZ());
+            if (!possiblyDamagedPylons.isEmpty()) {
+                getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+                    @Override 
+                    public void run() {
+                        for (Pylon pylon : possiblyDamagedPylons) {
+                            if (!pylonPattern.checkStructure(e.getBlock().getWorld(), pylon)) {
+                                info("Pylon at " + Integer.toString(pylon.getX()) + ", " + Integer.toString(pylon.getY()) + ", " + Integer.toString(pylon.getZ()) + " damaged, deactivating");
+                                deactivatePylon(pylon);
+                            }
+                        }
+                    }
+                }, 1L);
+            }
+        }
+    }
+    
+    public void deactivatePylon(Pylon pylon) {
+        info("Removing pylon");
+        pylons.removePylon(pylon);
+    }
+    
+    public void doDivining(Player player) {
+    }
+    
+    public void togglePylon(Block block, Player player) {
+          info("Interact");
+          Pylon existingPylon = pylons.pylonAt(block.getX(), block.getY(), block.getZ());
+          if (existingPylon != null) {
+              player.sendMessage("Deactivated pylon");
+              deactivatePylon(existingPylon);
+          } else if (pylonPattern.testBlock(block)) {
+              int levels = pylonPattern.countLevels(block);
+              if (levels > pylons.getConfig().getMaxPylonHeight()) {
+                  levels = pylons.getConfig().getMaxPylonHeight();
+              }
+              Pylon newPylon = new Pylon(pylons, block.getX(), block.getY(), block.getZ(), levels);
+              pylons.addPylon(newPylon);
+              player.sendMessage("Activated pylon with " + Integer.toString(levels) + " levels");
+          }
     }
     
     public static void info(String message){

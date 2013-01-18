@@ -124,7 +124,26 @@ public class PylonPattern {
       return levels;
   }
   
-  public boolean testTemplate(int[][] template, World world, int x, int y, int z) {
+  public boolean checkStructure(World world, Pylon pylon) {
+      int x = pylon.getX();
+      int y = pylon.getY();
+      int z = pylon.getZ();
+      
+      Block block = world.getBlockAt(x, y, z);
+      if (!testBlock(block)) {
+          // Damage to base
+          return false;
+      }
+      
+      if (countLevels(block) < pylon.getHeight()) {
+          // Damage to tower
+          return false;
+      }
+      
+      return true;
+  }
+  
+  private boolean testTemplate(int[][] template, World world, int x, int y, int z) {
       int dx, dz;
       for (dz = 0; dz < height; dz++) {
           int tz = z + dz - offsetHeight;

@@ -6,11 +6,12 @@ import rtree.BoundedObject;
 
 public class Pylon implements BoundedObject {
     private PylonSet cluster;
-    private double x, y, z, radius;
+    private int x, y, z;
+    private double radius;
     private int height;
     private Pylon.EffectBounds influence;
     
-    public Pylon(PylonSet cluster, double x, double y, double z, int height) {
+    public Pylon(PylonSet cluster, int x, int y, int z, int height) {
         this.cluster = cluster;
         this.x = x;
         this.y = y;
@@ -25,20 +26,20 @@ public class Pylon implements BoundedObject {
     
     public AABB getBounds() {
         AABB boundingBox = new AABB();
-        boundingBox.setMinCorner(x - 2, 0, z - 2);
-        boundingBox.setMaxCorner(x + 2, 256, z + 2);
+        boundingBox.setMinCorner((double) x - 2, (double) y - 1, (double) z - 2);
+        boundingBox.setMaxCorner((double) x + 2, (double) y + 2 + height, (double) z + 2);
         return boundingBox;
     }
     
-    public double getX() {
+    public int getX() {
         return x;
     }
     
-    public double getY() {
+    public int getY() {
         return y;
     }
     
-    public double getZ() {
+    public int getZ() {
         return z;
     }
     
