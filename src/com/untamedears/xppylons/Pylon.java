@@ -6,7 +6,7 @@ import rtree.BoundedObject;
 
 public class Pylon implements BoundedObject {
     private PylonSet cluster;
-    private double x, y, z;
+    private double x, y, z, radius;
     private int height;
     private Pylon.EffectBounds influence;
     
@@ -17,6 +17,10 @@ public class Pylon implements BoundedObject {
         this.z = z;
         this.height = height;
         this.influence = new Pylon.EffectBounds(this);
+        
+        double maxHeight = cluster.getConfig().getMaxPylonHeight();
+        double maxRadius = cluster.getConfig().getMaximumRadius();
+        this.radius = Math.sqrt(height / maxHeight) * maxRadius;
     }
     
     public AABB getBounds() {
@@ -42,10 +46,12 @@ public class Pylon implements BoundedObject {
         return height;
     }
     
+    public PylonSet getCluster() {
+        return cluster;
+    }
+    
     public double getRadiusOfEffect() {
-        double maxHeight = cluster.getConfig().getMaxPylonHeight();
-        double maxRadius = cluster.getConfig().getMaximumRadius();
-        return Math.sqrt(height / maxHeight) * maxRadius;
+        return radius;
     }
     
     public Pylon.EffectBounds getInfluence() {
@@ -64,8 +70,42 @@ public class Pylon implements BoundedObject {
         }
         
         public boolean affects(double x, double z) {
+            return getStrengthAt(x, z) > 0;
+        }
+        
+        public double getStrengthAt(double x, double z) {
             double radius = pylon.getRadiusOfEffect();
-            return x * x + z * z <= radius * radius;
+            double radiusSq = radius * radius;
+            double dx = pylon.getX() - x;
+            double dz = pylon.getZ() - z;
+            double distSq = dx * dx + dz * dz;
+            if (distSq > radiusSq) {
+                return 0;
+            } else {
+                double dist = Math.sqrt(radius);
+                double depletionScale = pylon.getCluster().getConfig().getPylonDepletion();
+                double strength = depletionScale * Math.sqrt(dist / radius);
+                return strength;
+            }
+        }
+        
+        public double getShareAt(double x, double z) {
+            double totalStrength = 0.0;
+            double residual = 1.0;
+            
+            for (Pylon other : pylon.getCluster().pylonsInfluencing(x, z)) {
+                double strengthAtPoint = other.getInfluence().getStrengthAt(x, z);
+                totalStrength += strengthAtPoint;
+                residual = residual * (1.0 - strengthAtPoint);
+            }
+            
+            if (totalStrength <= 0.0 || residual <= 0.0 || residual > 1.0) {
+                return 0.0;
+            }
+            
+            double draw = 1.0 - residual;
+            double share = getStrengthAt(x, z) * (draw / totalStrength);
+            return share;
         }
         
         public AABB getBounds() {

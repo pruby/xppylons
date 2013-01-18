@@ -5,16 +5,14 @@ import org.bukkit.configuration.ConfigurationSection;
 public class PylonConfig {
     private double maximumRadius;
     private int maxPylonHeight;
-    private double averageXpPerLevel;
-    private double peakXpPerLevel;
-    private double pylonEfficiency;
+    private double targetXpPerLevelDay;
+    private double pylonDepletion;
     
     public PylonConfig(ConfigurationSection section) {
         maximumRadius = section.getDouble("maximumRadius");
         maxPylonHeight = section.getInt("maxPylonHeight");
-        averageXpPerLevel = section.getDouble("averageXpPerLevel");
-        peakXpPerLevel = averageXpPerLevel * 2;
-        pylonEfficiency = section.getDouble("pylonEfficiency");
+        targetXpPerLevelDay = section.getDouble("targetXpPerLevelDay");
+        pylonDepletion = section.getDouble("pylonDepletion");
     }
     
     public double getMaximumRadius() {
@@ -25,11 +23,11 @@ public class PylonConfig {
         return maxPylonHeight;
     }
     
-    public double getAverageXpPerLevel() {
-        return averageXpPerLevel;
+    public double getTargetXpPerLevelDay() {
+        return targetXpPerLevelDay;
     }
     
-    public double getPylonEfficiency() {
-        return pylonEfficiency;
+    public double getPylonDepletion() {
+        return pylonDepletion;
     }
 }

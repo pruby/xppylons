@@ -1,8 +1,8 @@
 pylons:
   maximumRadius: 1000
   maxPylonHeight: 64
-  averageExpPerLevel: 1
-  pylonEfficiency: 0.4
+  targetXpPerLevelDay: 500
+  pylonDepletion: 0.4
 materials:
   D: 57 # Diamond block
   I: 42 # Iron block
