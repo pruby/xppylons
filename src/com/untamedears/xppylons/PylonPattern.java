@@ -87,7 +87,7 @@ public class PylonPattern {
       return basePattern[offsetHeight + 1][offsetWidth + 1];
   }
   
-  public boolean testBlock(Block block) {
+  public boolean testBlock(Block block, boolean structureActive) {
       World world = block.getWorld();
       if (world.getEnvironment() != World.Environment.NORMAL) {
           System.out.println("Wrong environment for pylon");
@@ -104,12 +104,12 @@ public class PylonPattern {
           return false;
       }
       
-      if (!testTemplate(basePattern, block.getWorld(), block.getX(), block.getY() - 1, block.getZ())) {
+      if (!testTemplate(basePattern, block.getWorld(), block.getX(), block.getY() - 1, block.getZ(), structureActive)) {
           System.out.println("Base template mismatch");
           return false;
       }
       
-      if (!testTemplate(roofPattern, block.getWorld(), block.getX(), block.getY() + 2, block.getZ())) {
+      if (!testTemplate(roofPattern, block.getWorld(), block.getX(), block.getY() + 2, block.getZ(), false)) {
           System.out.println("Roof template mismatch");
           return false;
       }
@@ -121,7 +121,7 @@ public class PylonPattern {
       int towerBase = block.getY() + 3;
       int levels;
       for (levels = 0; levels + towerBase < block.getWorld().getMaxHeight(); levels++) {
-          if (!testTemplate(levelPattern, block.getWorld(), block.getX(), levels + towerBase, block.getZ())) {
+          if (!testTemplate(levelPattern, block.getWorld(), block.getX(), levels + towerBase, block.getZ(), false)) {
               return levels;
           }
       }
@@ -134,7 +134,7 @@ public class PylonPattern {
       int z = pylon.getZ();
       
       Block block = world.getBlockAt(x, y, z);
-      if (!testBlock(block)) {
+      if (!testBlock(block, true)) {
           // Damage to base
           return false;
       }
@@ -147,12 +147,16 @@ public class PylonPattern {
       return true;
   }
   
-  private boolean testTemplate(int[][] template, World world, int x, int y, int z) {
+  private boolean testTemplate(int[][] template, World world, int x, int y, int z, boolean ignoreCentre) {
       int dx, dz;
       for (dz = 0; dz < height; dz++) {
           int tz = z + dz - offsetHeight;
           for (dx = 0; dx < width; dx++) {
               int tx = x + dx - offsetWidth;
+              if (dx == offsetWidth && dz == offsetWidth && ignoreCentre) {
+                  continue;
+              }
+              
               int templateId = template[dz][dx];
               int blockTypeId = world.getBlockTypeIdAt(tx, y, tz);
               if (templateId > 0 && templateId != blockTypeId) {

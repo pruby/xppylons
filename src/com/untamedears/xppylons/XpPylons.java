@@ -183,10 +183,8 @@ public class XpPylons extends JavaPlugin implements Listener {
     }
     
     public void deactivatePylon(Pylon pylon, World world) {
-        info("Removing pylon");
         Block glowBlock = world.getBlockAt(pylon.getX(), pylon.getY() - 1, pylon.getZ());
         if (glowBlock != null) {
-            info("Got block");
             if (glowBlock.getType() == Material.GLOWSTONE) {
                 info("Is glowstone");
                 info("Changing glow block back to " + Integer.toString(pylonPattern.getOriginalGlowBlockTypeId()));
@@ -209,7 +207,7 @@ public class XpPylons extends JavaPlugin implements Listener {
           if (existingPylon != null) {
               player.sendMessage("Deactivated pylon");
               deactivatePylon(existingPylon, block.getWorld());
-          } else if (pylonPattern.testBlock(block)) {
+          } else if (pylonPattern.testBlock(block, false)) {
               int levels = pylonPattern.countLevels(block);
               PylonSet pylons = getPylons(world);
               if (levels > pylons.getConfig().getMaxPylonHeight()) {
