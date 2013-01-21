@@ -24,6 +24,9 @@ materials:
 items:
   divining: 345 # Compass
   activation: 345 # Compass
+negativeEffects:
+  cropGrowthReduction: 1.0 # Max chance to block
+  treeGrowthReduction: 1.0
 patterns:
   base: |
     **O**

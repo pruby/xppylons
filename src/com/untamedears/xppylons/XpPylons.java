@@ -36,6 +36,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import com.untamedears.xppylons.task.AccumulateXP;
 import com.untamedears.xppylons.task.RecalculateXPRate;
+import com.untamedears.xppylons.listener.GrowthReduction;
 
 public class XpPylons extends JavaPlugin implements Listener {
     private static final Logger log = Logger.getLogger("XpPylons");
@@ -104,6 +105,7 @@ public class XpPylons extends JavaPlugin implements Listener {
         try {
             PluginManager pm = getServer().getPluginManager();
             pm.registerEvents(this, this);
+            pm.registerEvents(new GrowthReduction(this), this);
         }
         catch(Exception e)
         {
@@ -246,7 +248,9 @@ public class XpPylons extends JavaPlugin implements Listener {
     public void doDivining(Player player) {
         EnergyField field = getEnergyField(player.getWorld()); 
         double energyHere = field.energyAt(player.getLocation().getX(), player.getLocation().getZ());
-        player.sendMessage("Energy here is " + Double.toString(energyHere));
+        double drainHere = getPylons(player.getWorld()).energyDrainAtPoint(player.getLocation().getX(), player.getLocation().getZ());
+        
+        player.sendMessage("Energy here is " + Double.toString(energyHere * (1.0 - drainHere)));
     }
     
     public void togglePylon(Block block, Player player) {

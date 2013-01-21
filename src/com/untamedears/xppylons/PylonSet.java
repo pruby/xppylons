@@ -111,6 +111,17 @@ public class PylonSet {
         return pylonsInfluencing;
     }
     
+    public double energyDrainAtPoint(double x, double z) {
+        double residual = 1.0;
+        
+        for (Pylon pylon : pylonsInfluencing(x, z)) {
+            double strengthAtPoint = pylon.getInfluence().getStrengthAt(x, z);
+            residual = residual * (1.0 - strengthAtPoint);
+        }
+        
+        return 1.0 - residual;
+    }
+    
     public PylonConfig getConfig() {
         return config;
     }
