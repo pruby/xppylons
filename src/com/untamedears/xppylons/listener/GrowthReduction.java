@@ -34,7 +34,6 @@ public class GrowthReduction implements Listener {
         
         if (chance < 1.0) {
             if (plugin.getPluginRandom().nextDouble() >= chance) {
-                plugin.info("Growth event cancelled, chance was " + Double.toString(chance));
                 e.setCancelled(true);
             }
         }

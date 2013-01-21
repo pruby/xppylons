@@ -39,6 +39,8 @@ import org.bukkit.scheduler.BukkitTask;
 import com.untamedears.xppylons.task.AccumulateXP;
 import com.untamedears.xppylons.task.RecalculateXPRate;
 import com.untamedears.xppylons.listener.GrowthReduction;
+import com.untamedears.xppylons.listener.Divining;
+import com.untamedears.xppylons.listener.TowerDamage;
 
 public class XpPylons extends JavaPlugin implements Listener {
     private static final Logger log = Logger.getLogger("XpPylons");
@@ -51,13 +53,10 @@ public class XpPylons extends JavaPlugin implements Listener {
     
     private PylonPattern pylonPattern;
     private int activationItemId;
-    private int diviningItemId;
     private int interactionBlockId;
     
     private int accumulateXpTask;
     private int recalculateXpTask;
-    
-    private Set<Integer> diviningBlocks;
     
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args){
         return true;
@@ -67,13 +66,11 @@ public class XpPylons extends JavaPlugin implements Listener {
         plugin = this;
         
         saveDefaultConfig();
-        initDiviningBlocks();
         
         pylonSets = new HashMap<World, PylonSet>();
         energyFields = new HashMap<World, EnergyField>();
         pluginRandom = new Random();
         
-        diviningItemId = getConfig().getInt("items.divining");
         activationItemId = getConfig().getInt("items.activation");
         interactionBlockId = getConfig().getInt("materials.interaction");
         
@@ -111,6 +108,7 @@ public class XpPylons extends JavaPlugin implements Listener {
             PluginManager pm = getServer().getPluginManager();
             pm.registerEvents(this, this);
             pm.registerEvents(new GrowthReduction(this), this);
+            pm.registerEvents(new Divining(this), this);
         }
         catch(Exception e)
         {
@@ -159,24 +157,6 @@ public class XpPylons extends JavaPlugin implements Listener {
         return worldEnergy;
     }
     
-    public void initDiviningBlocks() {
-        diviningBlocks = new HashSet<Integer>();
-        diviningBlocks.add(Material.LEAVES.getId());
-        diviningBlocks.add(Material.GRASS.getId());
-        diviningBlocks.add(Material.LONG_GRASS.getId());
-        diviningBlocks.add(Material.YELLOW_FLOWER.getId());
-        diviningBlocks.add(Material.RED_ROSE.getId());
-        diviningBlocks.add(Material.CACTUS.getId());
-        diviningBlocks.add(Material.CROPS.getId());
-        diviningBlocks.add(Material.PUMPKIN_STEM.getId());
-        diviningBlocks.add(Material.MELON_STEM.getId());
-        diviningBlocks.add(Material.SUGAR_CANE_BLOCK.getId());
-        diviningBlocks.add(Material.WATER_LILY.getId());
-        diviningBlocks.add(Material.CARROT.getId());
-        diviningBlocks.add(Material.POTATO.getId());
-        diviningBlocks.add(Material.SAPLING.getId());
-    }
-    
     @EventHandler(ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent e) {
         try {
@@ -191,12 +171,6 @@ public class XpPylons extends JavaPlugin implements Listener {
             if (e.getAction() == Action.RIGHT_CLICK_BLOCK && materialInHand == activationItemId && clickedBlockType == interactionBlockId) {
                 // Activate/deactivate pylon
                 togglePylon(block, e.getPlayer());
-            } else if ((e.getAction() == Action.RIGHT_CLICK_BLOCK) && materialInHand == diviningItemId) {
-                // Divining
-                if (e.hasBlock() && diviningBlocks.contains(block.getTypeId())) {
-                    Location diviningPoint = block.getLocation();
-                    doDivining(e.getPlayer(), diviningPoint);
-                }
             } else if (e.getAction() == Action.RIGHT_CLICK_BLOCK && materialInHand == Material.GLASS_BOTTLE.getId() && clickedBlockType == interactionBlockId) {
                 Pylon existingPylon = getPylons(block.getWorld()).pylonAt(block.getX(), block.getY(), block.getZ());
                 if (existingPylon != null) {
@@ -212,44 +186,6 @@ public class XpPylons extends JavaPlugin implements Listener {
         }
     }
     
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onBlockBreak(final BlockBreakEvent e) {
-        try {
-            final World world = e.getBlock().getWorld();
-            final PylonSet pylons = getPylons(world);
-            final List<Pylon> possiblyDamagedPylons = pylons.pylonsAround(e.getBlock().getX(), e.getBlock().getY(), e.getBlock().getZ());
-            for (Pylon pylon : possiblyDamagedPylons) {
-                if (pylon.getX() == e.getBlock().getX() && pylon.getY() == e.getBlock().getY() + 1 && pylon.getZ() == e.getBlock().getZ()) {
-                    // Is the glow block
-                    e.setCancelled(true);
-                    deactivatePylon(pylon, world);
-                    return;
-                }
-            }
-            
-            if (!possiblyDamagedPylons.isEmpty()) {
-                scheduleStructureCheck(e.getBlock().getWorld(), possiblyDamagedPylons);
-            }
-        } catch (RuntimeException ex) {
-            severe(ex.getClass().getName());
-            ex.printStackTrace();
-            throw ex;
-        }
-    }
-    
-    private void scheduleStructureCheck(final World world, final List<Pylon> possiblyDamagedPylons) {
-        getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
-            @Override 
-            public void run() {
-                for (Pylon pylon : possiblyDamagedPylons) {
-                    if (!pylonPattern.checkStructure(world, pylon)) {
-                        info("Pylon at " + Integer.toString(pylon.getX()) + ", " + Integer.toString(pylon.getY()) + ", " + Integer.toString(pylon.getZ()) + " damaged, deactivating");
-                        deactivatePylon(pylon, world);
-                    }
-                }
-            }
-        }, 1L);
-    }
     
     public void activatePylon(Block block, int levels) {
         World world = block.getWorld();
@@ -271,77 +207,8 @@ public class XpPylons extends JavaPlugin implements Listener {
         getPylons(world).removePylon(pylon);
     }
     
-    // Drained messages used for energy drained below base level
-    public static double[] drainedDiviningThresholds = {
-        0.9,
-        0.8,
-        0.6,
-        0.4,
-        0.2,
-        0.0
-    };
-    public static String[] drainedDiviningMessages = {
-        "Growth seems slow here",
-        "Growing things seem less green here",
-        "Plantlife seems strained here",
-        "There is little new growth around here",
-        "Plants here are withering",
-        "Plants here seem on the verge of death"
-    };
-    
-    // Overage messages used for areas with a surplus over base level
-    public static double[] overageDiviningThresholds = {
-        0.9,
-        0.8,
-        0.6,
-        0.4,
-        0.2,
-        0.0
-    };
-    
-    public static String[] overageDiviningMessages = {
-        "Plants here are glowing with health",
-        "Plantlife here is in perfect health",
-        "Plants here are sprawling vigorously",
-        "Plantlife here is very healthy",
-        "The plants here are green and healthy",
-        "Plants here are growing normally"
-    };
-    
-    public void doDivining(Player player, Location diviningLocation) {
-        EnergyField field = getEnergyField(player.getWorld()); 
-        
-        double remainingEnergy;
-        if (field != null) {
-            double energyHere = field.energyAt(diviningLocation.getX(), diviningLocation.getZ());
-            double drainHere = getPylons(player.getWorld()).energyDrainAtPoint(player.getLocation().getX(), player.getLocation().getZ());
-            
-            remainingEnergy = energyHere * (1.0 - drainHere);
-        } else {
-            // No energy here
-            remainingEnergy = 0.0;
-        }
-        
-        if (remainingEnergy < 1.0) {
-            // Use drain messages
-            for (int i = 0; i < drainedDiviningMessages.length; i++) {
-                if (drainedDiviningThresholds[i] <= remainingEnergy) {
-                    player.sendMessage(drainedDiviningMessages[i]);
-                    break;
-                }
-            }
-        } else {
-            double peakEnergy = getPylons(player.getWorld()).getEnergyField().getMaxTimesBackground();
-            double peakOverBackground = peakEnergy - 1.0;
-            double extraProportion = (remainingEnergy - 1.0) / peakOverBackground;
-            
-            for (int i = 0; i < overageDiviningMessages.length; i++) {
-                if (overageDiviningThresholds[i] <= extraProportion) {
-                    player.sendMessage(overageDiviningMessages[i]);
-                    break;
-                }
-            }
-        }
+    public PylonPattern getPylonPattern() {
+        return pylonPattern;
     }
     
     public void togglePylon(Block block, Player player) {
