@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.Set;
+import java.util.HashSet;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -24,6 +25,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.World;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.*;
 import org.bukkit.event.*;
@@ -55,6 +57,8 @@ public class XpPylons extends JavaPlugin implements Listener {
     private int accumulateXpTask;
     private int recalculateXpTask;
     
+    private Set<Integer> diviningBlocks;
+    
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args){
         return true;
     }
@@ -63,6 +67,7 @@ public class XpPylons extends JavaPlugin implements Listener {
         plugin = this;
         
         saveDefaultConfig();
+        initDiviningBlocks();
         
         pylonSets = new HashMap<World, PylonSet>();
         energyFields = new HashMap<World, EnergyField>();
@@ -154,6 +159,24 @@ public class XpPylons extends JavaPlugin implements Listener {
         return worldEnergy;
     }
     
+    public void initDiviningBlocks() {
+        diviningBlocks = new HashSet<Integer>();
+        diviningBlocks.add(Material.LEAVES.getId());
+        diviningBlocks.add(Material.GRASS.getId());
+        diviningBlocks.add(Material.LONG_GRASS.getId());
+        diviningBlocks.add(Material.YELLOW_FLOWER.getId());
+        diviningBlocks.add(Material.RED_ROSE.getId());
+        diviningBlocks.add(Material.CACTUS.getId());
+        diviningBlocks.add(Material.CROPS.getId());
+        diviningBlocks.add(Material.PUMPKIN_STEM.getId());
+        diviningBlocks.add(Material.MELON_STEM.getId());
+        diviningBlocks.add(Material.SUGAR_CANE_BLOCK.getId());
+        diviningBlocks.add(Material.WATER_LILY.getId());
+        diviningBlocks.add(Material.CARROT.getId());
+        diviningBlocks.add(Material.POTATO.getId());
+        diviningBlocks.add(Material.SAPLING.getId());
+    }
+    
     @EventHandler(ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent e) {
         try {
@@ -168,9 +191,12 @@ public class XpPylons extends JavaPlugin implements Listener {
             if (e.getAction() == Action.RIGHT_CLICK_BLOCK && materialInHand == activationItemId && clickedBlockType == interactionBlockId) {
                 // Activate/deactivate pylon
                 togglePylon(block, e.getPlayer());
-            } else if ((e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) && materialInHand == diviningItemId) {
+            } else if ((e.getAction() == Action.RIGHT_CLICK_BLOCK) && materialInHand == diviningItemId) {
                 // Divining
-                doDivining(e.getPlayer());
+                if (e.hasBlock() && diviningBlocks.contains(block.getTypeId())) {
+                    Location diviningPoint = block.getLocation();
+                    doDivining(e.getPlayer(), diviningPoint);
+                }
             } else if (e.getAction() == Action.RIGHT_CLICK_BLOCK && materialInHand == Material.GLASS_BOTTLE.getId() && clickedBlockType == interactionBlockId) {
                 Pylon existingPylon = getPylons(block.getWorld()).pylonAt(block.getX(), block.getY(), block.getZ());
                 if (existingPylon != null) {
@@ -245,12 +271,77 @@ public class XpPylons extends JavaPlugin implements Listener {
         getPylons(world).removePylon(pylon);
     }
     
-    public void doDivining(Player player) {
+    // Drained messages used for energy drained below base level
+    public static double[] drainedDiviningThresholds = {
+        0.9,
+        0.8,
+        0.6,
+        0.4,
+        0.2,
+        0.0
+    };
+    public static String[] drainedDiviningMessages = {
+        "Growth seems slow here",
+        "Growing things seem less green here",
+        "Plantlife seems strained here",
+        "There is little new growth around here",
+        "Plants here are withering",
+        "Plants here seem on the verge of death"
+    };
+    
+    // Overage messages used for areas with a surplus over base level
+    public static double[] overageDiviningThresholds = {
+        0.9,
+        0.8,
+        0.6,
+        0.4,
+        0.2,
+        0.0
+    };
+    
+    public static String[] overageDiviningMessages = {
+        "Plants here are glowing with health",
+        "Plantlife here is in perfect health",
+        "Plants here are sprawling vigorously",
+        "Plantlife here is very healthy",
+        "The plants here are green and healthy",
+        "Plants here are growing normally"
+    };
+    
+    public void doDivining(Player player, Location diviningLocation) {
         EnergyField field = getEnergyField(player.getWorld()); 
-        double energyHere = field.energyAt(player.getLocation().getX(), player.getLocation().getZ());
-        double drainHere = getPylons(player.getWorld()).energyDrainAtPoint(player.getLocation().getX(), player.getLocation().getZ());
         
-        player.sendMessage("Energy here is " + Double.toString(energyHere * (1.0 - drainHere)));
+        double remainingEnergy;
+        if (field != null) {
+            double energyHere = field.energyAt(diviningLocation.getX(), diviningLocation.getZ());
+            double drainHere = getPylons(player.getWorld()).energyDrainAtPoint(player.getLocation().getX(), player.getLocation().getZ());
+            
+            remainingEnergy = energyHere * (1.0 - drainHere);
+        } else {
+            // No energy here
+            remainingEnergy = 0.0;
+        }
+        
+        if (remainingEnergy < 1.0) {
+            // Use drain messages
+            for (int i = 0; i < drainedDiviningMessages.length; i++) {
+                if (drainedDiviningThresholds[i] <= remainingEnergy) {
+                    player.sendMessage(drainedDiviningMessages[i]);
+                    break;
+                }
+            }
+        } else {
+            double peakEnergy = getPylons(player.getWorld()).getEnergyField().getMaxTimesBackground();
+            double peakOverBackground = peakEnergy - 1.0;
+            double extraProportion = (remainingEnergy - 1.0) / peakOverBackground;
+            
+            for (int i = 0; i < overageDiviningMessages.length; i++) {
+                if (overageDiviningThresholds[i] <= extraProportion) {
+                    player.sendMessage(overageDiviningMessages[i]);
+                    break;
+                }
+            }
+        }
     }
     
     public void togglePylon(Block block, Player player) {

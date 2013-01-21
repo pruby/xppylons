@@ -43,4 +43,8 @@ public class EnergyField {
         
         return longRangeMultiplier * midRangeExtra + 1.0;
     }
+    
+    public double getMaxTimesBackground() {
+        return maxTimesBackground;
+    }
 }
