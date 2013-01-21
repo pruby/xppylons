@@ -7,6 +7,7 @@ import java.util.LinkedList;
 
 import rtree.BoundedObject;
 import rtree.RTree;
+import rtree.AABB;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
@@ -85,6 +86,19 @@ public class PylonSet {
         LinkedList<BoundedObject> pylonsAsBoxes = new LinkedList<BoundedObject>();
         
         pylonStructures.query(pylonsAsBoxes, x, y, z);
+        
+        LinkedList<Pylon> pylons = new LinkedList<Pylon>();
+        for (BoundedObject pylonAsBox : pylonsAsBoxes) {
+            pylons.add((Pylon) pylonAsBox);
+        }
+        
+        return pylons;
+    }
+    
+    public synchronized List<Pylon> pylonsAround(AABB box) {
+        LinkedList<BoundedObject> pylonsAsBoxes = new LinkedList<BoundedObject>();
+        
+        pylonStructures.query(pylonsAsBoxes, box);
         
         LinkedList<Pylon> pylons = new LinkedList<Pylon>();
         for (BoundedObject pylonAsBox : pylonsAsBoxes) {
