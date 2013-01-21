@@ -42,6 +42,10 @@ public class GrowthReduction implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void growStructure(StructureGrowEvent e) {
+        if (e.isFromBonemeal()) {
+            return;
+        }
+        
         PylonSet pylonSet = plugin.getPylons(e.getWorld());
         EnergyField energyField = pylonSet.getEnergyField();
         
