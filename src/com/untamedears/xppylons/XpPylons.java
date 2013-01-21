@@ -176,7 +176,6 @@ public class XpPylons extends JavaPlugin implements Listener {
                 Pylon existingPylon = getPylons(block.getWorld()).pylonAt(block.getX(), block.getY(), block.getZ());
                 if (existingPylon != null) {
                     // Fill bottles
-                    e.getPlayer().sendMessage("Tower has " + Double.toString(existingPylon.getXp()) + " XP, accumulating at a rate of " + Double.toString(existingPylon.getXpRate()));
                     existingPylon.dispenseXp(e.getPlayer());
                 }
             }
