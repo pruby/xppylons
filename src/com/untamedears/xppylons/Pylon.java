@@ -115,7 +115,8 @@ public class Pylon implements BoundedObject {
             double dx = Math.cos(angle) * distance;
             double dz = Math.sin(angle) * distance;
             double share = getInfluence().getShareAt(x + dx, z + dz);
-            xpRate += share * sampleScale;
+            double energy = cluster.getEnergyField().energyAt(x + dx, z + dz);
+            xpRate += share * energy * sampleScale;
         }
     }
     
@@ -125,6 +126,9 @@ public class Pylon implements BoundedObject {
     
     public void accumulateXp() {
         xp += xpRate;
+        if (xp > cluster.getConfig().getMaxStoredXp()) {
+            xp = cluster.getConfig().getMaxStoredXp();
+        }
     }
     
     public double getXp() {
