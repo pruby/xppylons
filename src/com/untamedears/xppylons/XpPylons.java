@@ -109,6 +109,7 @@ public class XpPylons extends JavaPlugin implements Listener {
             pm.registerEvents(this, this);
             pm.registerEvents(new GrowthReduction(this), this);
             pm.registerEvents(new Divining(this), this);
+            pm.registerEvents(new TowerDamage(this), this);
         }
         catch(Exception e)
         {

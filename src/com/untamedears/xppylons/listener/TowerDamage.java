@@ -123,7 +123,7 @@ public class TowerDamage implements Listener {
             // the block that the piston moved
             Block moved = bpre.getBlock().getRelative(direction, 2);
             
-            final List<Pylon> possiblyDamagedPylons = plugin.getPylons(bpre.getBlock().getWorld()).pylonsAround(bpre.getBlock().getX(), bpre.getBlock().getY(), bpre.getBlock().getZ());
+            final List<Pylon> possiblyDamagedPylons = plugin.getPylons(moved.getWorld()).pylonsAround(moved.getX(), moved.getY(), moved.getZ());
             if (!possiblyDamagedPylons.isEmpty()) {
                 if (checkSensitiveBlock(possiblyDamagedPylons, bpre)) {
                     bpre.setCancelled(true);
@@ -174,7 +174,7 @@ public class TowerDamage implements Listener {
                     }
                 }
             }
-        }, 1L);
+        }, 2L);
     }
     
 }
