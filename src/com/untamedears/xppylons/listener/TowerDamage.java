@@ -18,6 +18,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.block.BlockFace;
 
 import com.untamedears.xppylons.XpPylons;
@@ -49,14 +50,15 @@ public class TowerDamage implements Listener {
     }
     
     private boolean checkSensitiveBlock(List<Pylon> possiblyDamagedPylons, BlockEvent e, AABB checkZone) {
+        boolean result = false;
         for (Pylon pylon : possiblyDamagedPylons) {
             if (checkZone.contains(pylon.getX(), (pylon.getY() - 1), pylon.getZ())) {
                 // Is the glow block
                 plugin.deactivatePylon(pylon, e.getBlock().getWorld());
-                return true;
+                result = true;
             }
         }
-        return false;
+        return result;
     }
     
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -81,6 +83,51 @@ public class TowerDamage implements Listener {
         }
     }
     
+    
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    public void explosion(EntityExplodeEvent eee) {
+        try {
+            AABB explosionZone = null;
+            for (Block block : eee.blockList()) {
+                AABB blockZone = new AABB();
+                blockZone.setMinCorner(block.getX(), block.getY(), block.getZ());
+                blockZone.setMaxCorner(block.getX(), block.getY(), block.getZ());
+                if (explosionZone == null) {
+                    explosionZone = blockZone;
+                } else {
+                    explosionZone = explosionZone.merge(blockZone);
+                }
+            }
+            
+            if (explosionZone != null) {
+                final List<Pylon> possiblyDamagedPylons = plugin.getPylons(eee.getEntity().getWorld()).pylonsAround(explosionZone);
+                if (!possiblyDamagedPylons.isEmpty()) {
+                    Set<Block> cancelBlocks = new HashSet<Block>();
+                    Set<Pylon> cancelPylons = new HashSet<Pylon>();
+                    
+                    for (Pylon pylon : possiblyDamagedPylons) {    
+                        for (Block block : eee.blockList()) {
+                            if (block.getX() == pylon.getX() && block.getY() == (pylon.getY() - 1) && block.getZ() == pylon.getZ()) {
+                                // Is the glow block
+                                plugin.deactivatePylon(pylon, block.getWorld());
+                                cancelBlocks.add(block);
+                                cancelPylons.add(pylon);
+                            }
+                        }
+                    }
+                    
+                    eee.blockList().removeAll(cancelBlocks);
+                    possiblyDamagedPylons.removeAll(cancelPylons);
+                    
+                    scheduleStructureCheck(eee.getEntity().getWorld(), possiblyDamagedPylons);
+                }
+            }
+        } catch (RuntimeException ex) {
+            plugin.severe("Error with piston extend event");
+            ex.printStackTrace();
+            throw ex;
+        }
+    }
     
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void pistonExtend(BlockPistonExtendEvent bpee) {
