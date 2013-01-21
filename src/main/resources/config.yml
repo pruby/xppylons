@@ -4,6 +4,11 @@ pylons:
   minPylonHeight: 3
   targetXpPerLevelDay: 500
   pylonDepletion: 0.4
+  samplesPerLevel: 2
+  xpCollectionInterval: 30 # 30 seconds
+  xpCalculationInterval: 600 # 10 minutes
+  maxStoredXp: 4625 # 1 x Level 50
+  xpPerBottle: 25
 energy:
   seed: 256
   longRangeDistance: 10000

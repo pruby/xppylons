@@ -7,16 +7,21 @@ import java.util.LinkedList;
 
 import rtree.BoundedObject;
 import rtree.RTree;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.IOException;
 
 public class PylonSet {
     private XpPylons plugin;
     private PylonConfig config;
+    private EnergyField field;
     private Set<Pylon> pylons;
     private RTree pylonStructures;
     private RTree pylonInfluences;
     
-    public PylonSet(XpPylons plugin, PylonConfig config) {
+    public PylonSet(XpPylons plugin, EnergyField field, PylonConfig config) {
         this.plugin = plugin;
+        this.field = field;
         this.config = config;
         
         pylons = new HashSet<Pylon>();
@@ -24,23 +29,49 @@ public class PylonSet {
         pylonInfluences = new RTree(2, 4);
     }
     
-    public void addPylon(Pylon pylon) {
+    public XpPylons getPlugin() {
+        return plugin;
+    }
+    
+    public synchronized void addPylon(Pylon pylon) {
         pylons.add(pylon);
         pylonStructures.insert(pylon);
         pylonInfluences.insert(pylon.getInfluence());
+        
+        recalculateAffected(pylon);
     }
     
-    public void addPylon(int x, int y, int z, int height) {
+    public synchronized void addPylon(int x, int y, int z, int height) {
         addPylon(new Pylon(this, x, y, z, height));
     }
     
-    public void removePylon(Pylon pylon) {
+    public synchronized void removePylon(Pylon pylon) {
         pylonInfluences.remove(pylon.getInfluence());
         pylonStructures.remove(pylon);
         pylons.remove(pylon);
+        
+        recalculateAffected(pylon);
     }
     
-    public Pylon pylonAt(int x, int y, int z) {
+    public void recalculateAffected(Pylon pylon) {
+        List<BoundedObject> overlaps = new LinkedList<BoundedObject>();
+        pylonInfluences.query(overlaps, pylon.getInfluence().getBounds());
+        
+        for (BoundedObject overlap : overlaps) {
+            Pylon affectedPylon = ((Pylon.EffectBounds) overlap).getPylon();
+            affectedPylon.recalculateXpRate();
+        }
+    }
+    
+    public EnergyField getEnergyField() {
+        return field;
+    }
+    
+    public synchronized Set<Pylon> getPylonSet() {
+        return new HashSet<Pylon>(pylons);
+    }
+    
+    public synchronized Pylon pylonAt(int x, int y, int z) {
         List<Pylon> pylonsAroundPoint = pylonsAround(x, y, z);
         for (Pylon pylon : pylonsAroundPoint) {
             if (((int) pylon.getX()) == x && ((int) pylon.getY()) == y && ((int) pylon.getZ()) == z) {
@@ -50,7 +81,7 @@ public class PylonSet {
         return null;
     }
     
-    public List<Pylon> pylonsAround(double x, double y, double z) {
+    public synchronized List<Pylon> pylonsAround(double x, double y, double z) {
         LinkedList<BoundedObject> pylonsAsBoxes = new LinkedList<BoundedObject>();
         
         pylonStructures.query(pylonsAsBoxes, x, y, z);
@@ -63,7 +94,7 @@ public class PylonSet {
         return pylons;
     }
     
-    public List<Pylon> pylonsInfluencing(double x, double z) {
+    public synchronized List<Pylon> pylonsInfluencing(double x, double z) {
         LinkedList<BoundedObject> influences = new LinkedList<BoundedObject>();
         LinkedList<Pylon> pylonsInfluencing = new LinkedList<Pylon>();
         
@@ -82,5 +113,29 @@ public class PylonSet {
     
     public PylonConfig getConfig() {
         return config;
+    }
+    
+    public synchronized void savePylons(ObjectOutputStream output) throws IOException {
+        int numPylons = pylons.size();
+        output.writeInt(numPylons);
+        for (Pylon p : pylons) {
+            p.writePylon(output);
+        }
+    }
+    
+    public synchronized void readPylons(ObjectInputStream input) throws IOException {
+        int numPylons = input.readInt();
+        boolean seenError = false;
+        for (int i = 0; i < numPylons; i++) {
+            try {
+                Pylon.readPylon(this, input);
+            } catch (IOException e) {
+                if (!seenError) {
+                    plugin.severe("IO failure reading pylons");
+                    e.printStackTrace();
+                    seenError = true;
+                }
+            }
+        }
     }
 }
