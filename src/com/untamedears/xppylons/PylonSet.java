@@ -5,9 +5,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.LinkedList;
 
-import rtree.BoundedObject;
-import rtree.RTree;
-import rtree.AABB;
+import com.untamedears.xppylons.rtree.BoundedObject;
+import com.untamedears.xppylons.rtree.RTree;
+import com.untamedears.xppylons.rtree.AABB;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;

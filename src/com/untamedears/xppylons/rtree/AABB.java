@@ -1,5 +1,4 @@
-
-package rtree;
+package com.untamedears.xppylons.rtree;
 
 /**
  * 3D Axis Aligned Bounding Box

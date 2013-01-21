@@ -1,5 +1,4 @@
-
-package rtree;
+package com.untamedears.xppylons.rtree;
 
 import java.util.*;
 

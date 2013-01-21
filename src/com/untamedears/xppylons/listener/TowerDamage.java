@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
 
-import rtree.AABB;
+import com.untamedears.xppylons.rtree.AABB;
 
 import org.bukkit.World;
 import org.bukkit.entity.Player;

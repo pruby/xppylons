@@ -7,8 +7,8 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
 
-import rtree.AABB;
-import rtree.BoundedObject;
+import com.untamedears.xppylons.rtree.AABB;
+import com.untamedears.xppylons.rtree.BoundedObject;
 import org.bukkit.entity.Player;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;

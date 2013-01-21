@@ -1,6 +1,4 @@
-
-
-package rtree;
+package com.untamedears.xppylons.rtree;
 
 /**
  * An object bounded on an Axis-Aligned Bounding Box.
