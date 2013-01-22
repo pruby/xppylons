@@ -6,6 +6,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.util.noise.NoiseGenerator;
 import org.bukkit.util.noise.SimplexNoiseGenerator;
 import java.util.Random;
+import java.util.Date;
 
 public class EnergyField {
     private long seed;
@@ -33,7 +34,8 @@ public class EnergyField {
     }
     
     public double energyAt(double x, double z) {
-        double time = (double) world.getTime();
+        Date currentTime = new Date();
+        double time = ((double) currentTime.getTime()) / 1000.0;
         
         double longRangeNoise = longRangeVariation.noise(x / longRangeScale, z / longRangeScale, time / timeScale);
         double midRangeNoise = midRangeVariation.noise(x / midRangeScale, z / midRangeScale, time / timeScale);
