@@ -26,15 +26,17 @@ public class GrowthReduction implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void growBlock(BlockGrowEvent e) {
         PylonSet pylonSet = plugin.getPylons(e.getBlock().getWorld());
-        EnergyField energyField = pylonSet.getEnergyField();
-        
-        double drain = pylonSet.energyDrainAtPoint(e.getBlock().getX(), e.getBlock().getZ());
-        double energy = energyField.energyAt(e.getBlock().getX(), e.getBlock().getZ());
-        double chance = (1.0 - drain) * energy * growthReductionMax;
-        
-        if (chance < 1.0) {
-            if (plugin.getPluginRandom().nextDouble() >= chance) {
-                e.setCancelled(true);
+        if (pylonSet != null) {
+            EnergyField energyField = pylonSet.getEnergyField();
+            
+            double drain = pylonSet.energyDrainAtPoint(e.getBlock().getX(), e.getBlock().getZ());
+            double energy = energyField.energyAt(e.getBlock().getX(), e.getBlock().getZ());
+            double chance = (1.0 - drain) * energy * growthReductionMax;
+            
+            if (chance < 1.0) {
+                if (plugin.getPluginRandom().nextDouble() >= chance) {
+                    e.setCancelled(true);
+                }
             }
         }
     }
@@ -46,16 +48,18 @@ public class GrowthReduction implements Listener {
         }
         
         PylonSet pylonSet = plugin.getPylons(e.getWorld());
-        EnergyField energyField = pylonSet.getEnergyField();
-        
-        double drain = pylonSet.energyDrainAtPoint(e.getLocation().getX(), e.getLocation().getZ());
-        double energy = energyField.energyAt(e.getLocation().getX(), e.getLocation().getZ());
-        double chance = (1.0 - drain) * energy * treeReductionMax;
-        
-        if (chance < 1.0) {
-            if (plugin.getPluginRandom().nextDouble() >= chance) {
-                plugin.info("Growth event cancelled, chance was " + Double.toString(chance));
-                e.setCancelled(true);
+        if (pylonSet != null) {
+            EnergyField energyField = pylonSet.getEnergyField();
+            
+            double drain = pylonSet.energyDrainAtPoint(e.getLocation().getX(), e.getLocation().getZ());
+            double energy = energyField.energyAt(e.getLocation().getX(), e.getLocation().getZ());
+            double chance = (1.0 - drain) * energy * treeReductionMax;
+            
+            if (chance < 1.0) {
+                if (plugin.getPluginRandom().nextDouble() >= chance) {
+                    plugin.info("Growth event cancelled, chance was " + Double.toString(chance));
+                    e.setCancelled(true);
+                }
             }
         }
     }
