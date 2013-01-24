@@ -69,15 +69,17 @@ public class TowerDamage implements Listener {
             final Block block = e.getBlock();
             final World world = block.getWorld();
             final PylonSet pylons = plugin.getPylons(world);
-            final List<Pylon> possiblyDamagedPylons = pylons.pylonsAround(block.getX(), block.getY(), block.getZ());
-            
-            if (!possiblyDamagedPylons.isEmpty()) {
-                if (checkSensitiveBlock(possiblyDamagedPylons, e)) {
-                    e.setCancelled(true);
-                    return;
-                }
+            if (pylons != null) {
+                final List<Pylon> possiblyDamagedPylons = pylons.pylonsAround(block.getX(), block.getY(), block.getZ());
                 
-                scheduleStructureCheck(world, possiblyDamagedPylons);
+                if (!possiblyDamagedPylons.isEmpty()) {
+                    if (checkSensitiveBlock(possiblyDamagedPylons, e)) {
+                        e.setCancelled(true);
+                        return;
+                    }
+                    
+                    scheduleStructureCheck(world, possiblyDamagedPylons);
+                }
             }
         } catch (RuntimeException ex) {
             plugin.severe("Error with block break event");
