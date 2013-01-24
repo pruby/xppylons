@@ -168,7 +168,8 @@ public class Pylon implements BoundedObject {
             } else {
                 double dist = Math.sqrt(distSq);
                 double depletionScale = pylon.getCluster().getConfig().getPylonDepletion();
-                double strength = depletionScale * Math.sqrt(1.0 - (dist / radius));
+                double linearDecay = (1.0 - (dist / radius));
+                double strength = depletionScale * linearDecay;
                 return strength;
             }
         }
