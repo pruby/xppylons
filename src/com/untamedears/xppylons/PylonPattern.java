@@ -90,27 +90,22 @@ public class PylonPattern {
   public boolean testBlock(Block block, boolean structureActive) {
       World world = block.getWorld();
       if (world.getEnvironment() != World.Environment.NORMAL) {
-          System.out.println("Wrong environment for pylon");
           return false;
       }
       
       if (block.getTypeId() != materials.get("interaction")) {
-          System.out.println("Wrong interaction block");
           return false;
       }
       
       if (block.getY() < 60 || block.getY() > 70) {
-          System.out.println("Wrong Y level for pylon");
           return false;
       }
       
       if (!testTemplate(basePattern, block.getWorld(), block.getX(), block.getY() - 1, block.getZ(), structureActive)) {
-          System.out.println("Base template mismatch");
           return false;
       }
       
       if (!testTemplate(roofPattern, block.getWorld(), block.getX(), block.getY() + 2, block.getZ(), false)) {
-          System.out.println("Roof template mismatch");
           return false;
       }
       

@@ -212,7 +212,6 @@ public class XpPylons extends JavaPlugin implements Listener {
     }
     
     public void togglePylon(Block block, Player player) {
-          info("Interact");
           World world = block.getWorld();
           Pylon existingPylon = getPylons(world).pylonAt(block.getX(), block.getY(), block.getZ());
           if (existingPylon != null) {
