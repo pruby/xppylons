@@ -27,6 +27,7 @@ items:
 negativeEffects:
   cropGrowthReduction: 1.0 # Max chance to block
   treeGrowthReduction: 1.0
+  fishReduction: 1.0
 patterns:
   base: |
     **O**
