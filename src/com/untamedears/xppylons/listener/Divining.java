@@ -1,5 +1,6 @@
 package com.untamedears.xppylons.listener;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -20,37 +21,37 @@ import com.untamedears.xppylons.Pylon;
 import com.untamedears.xppylons.EnergyField;
 
 public class Divining implements Listener {
+    public final static Set<Integer> diviningBlocks;
+
+    static {
+        Set<Integer> tempBlocks = new HashSet<Integer>();
+        tempBlocks.add(Material.LEAVES.getId());
+        tempBlocks.add(Material.GRASS.getId());
+        tempBlocks.add(Material.LONG_GRASS.getId());
+        tempBlocks.add(Material.YELLOW_FLOWER.getId());
+        tempBlocks.add(Material.RED_ROSE.getId());
+        tempBlocks.add(Material.CACTUS.getId());
+        tempBlocks.add(Material.CROPS.getId());
+        tempBlocks.add(Material.PUMPKIN_STEM.getId());
+        tempBlocks.add(Material.MELON_STEM.getId());
+        tempBlocks.add(Material.SUGAR_CANE_BLOCK.getId());
+        tempBlocks.add(Material.WATER_LILY.getId());
+        tempBlocks.add(Material.CARROT.getId());
+        tempBlocks.add(Material.POTATO.getId());
+        tempBlocks.add(Material.SAPLING.getId());
+        diviningBlocks = Collections.unmodifiableSet(tempBlocks);
+    }
+
     private XpPylons plugin;
-    private Set<Integer> diviningBlocks;
     private int diviningItemId;
     
     public Divining(XpPylons plugin) {
         this.plugin = plugin;
         diviningItemId = plugin.getConfig().getInt("items.divining");
-        
-        initDiviningBlocks();
-    }
-    
-    public void initDiviningBlocks() {
-        diviningBlocks = new HashSet<Integer>();
-        diviningBlocks.add(Material.LEAVES.getId());
-        diviningBlocks.add(Material.GRASS.getId());
-        diviningBlocks.add(Material.LONG_GRASS.getId());
-        diviningBlocks.add(Material.YELLOW_FLOWER.getId());
-        diviningBlocks.add(Material.RED_ROSE.getId());
-        diviningBlocks.add(Material.CACTUS.getId());
-        diviningBlocks.add(Material.CROPS.getId());
-        diviningBlocks.add(Material.PUMPKIN_STEM.getId());
-        diviningBlocks.add(Material.MELON_STEM.getId());
-        diviningBlocks.add(Material.SUGAR_CANE_BLOCK.getId());
-        diviningBlocks.add(Material.WATER_LILY.getId());
-        diviningBlocks.add(Material.CARROT.getId());
-        diviningBlocks.add(Material.POTATO.getId());
-        diviningBlocks.add(Material.SAPLING.getId());
     }
     
     // Drained messages used for energy drained below base level
-    public static double[] drainedDiviningThresholds = {
+    public static final double[] drainedDiviningThresholds = {
         0.9,
         0.8,
         0.6,
@@ -58,7 +59,7 @@ public class Divining implements Listener {
         0.2,
         0.0
     };
-    public static String[] drainedDiviningMessages = {
+    public static final String[] drainedDiviningMessages = {
         "Growth seems slow here",
         "Growing things seem less green here",
         "Plantlife seems strained here",
@@ -68,7 +69,7 @@ public class Divining implements Listener {
     };
     
     // Overage messages used for areas with a surplus over base level
-    public static double[] overageDiviningThresholds = {
+    public static final double[] overageDiviningThresholds = {
         0.9,
         0.8,
         0.6,
@@ -77,7 +78,7 @@ public class Divining implements Listener {
         0.0
     };
     
-    public static String[] overageDiviningMessages = {
+    public static final String[] overageDiviningMessages = {
         "Plants here are glowing with health",
         "Plantlife here is in perfect health",
         "Plants here are sprawling vigorously",
@@ -122,14 +123,14 @@ public class Divining implements Listener {
         }
     }
     
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent e) {
         try {
             int materialInHand = e.getMaterial().getId() ;
             
             if ((e.getAction() == Action.RIGHT_CLICK_BLOCK) && e.hasBlock() && materialInHand == diviningItemId) {
                 // Divining
-                if (e.hasBlock() && diviningBlocks.contains(e.getClickedBlock().getTypeId())) {
+                if (Divining.diviningBlocks.contains(e.getClickedBlock().getTypeId())) {
                     Location diviningPoint = e.getClickedBlock().getLocation();
                     doDivining(e.getPlayer(), diviningPoint);
                 }

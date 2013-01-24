@@ -1,5 +1,6 @@
 package com.untamedears.xppylons.listener;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.Listener;
@@ -22,20 +23,28 @@ public class GrowthReduction implements Listener {
         growthReductionMax = plugin.getConfig().getDouble("negativeEffects.cropGrowthReduction");
         treeReductionMax = plugin.getConfig().getDouble("negativeEffects.treeGrowthReduction");
     }
-    
-    @EventHandler(ignoreCancelled = true)
-    public void growBlock(BlockGrowEvent e) {
-        PylonSet pylonSet = plugin.getPylons(e.getBlock().getWorld());
+
+    private boolean shouldCancelGrowth(Location location, double max_reduction) {
+        PylonSet pylonSet = plugin.getPylons(location.getWorld());
         EnergyField energyField = pylonSet.getEnergyField();
         
-        double drain = pylonSet.energyDrainAtPoint(e.getBlock().getX(), e.getBlock().getZ());
-        double energy = energyField.energyAt(e.getBlock().getX(), e.getBlock().getZ());
-        double chance = (1.0 - drain) * energy * growthReductionMax;
+        double drain = pylonSet.energyDrainAtPoint(location.getX(), location.getZ());
+        double energy = energyField.energyAt(location.getX(), location.getZ());
+        double chance = (1.0 - drain) * energy * max_reduction;
         
         if (chance < 1.0) {
             if (plugin.getPluginRandom().nextDouble() >= chance) {
-                e.setCancelled(true);
+                plugin.info("Growth event cancelled, chance was " + Double.toString(chance));
+                return true;
             }
+        }
+        return false;
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void growBlock(BlockGrowEvent e) {
+        if (shouldCancelGrowth(e.getBlock().getLocation(), growthReductionMax)) {
+            e.setCancelled(true);
         }
     }
 
@@ -44,19 +53,8 @@ public class GrowthReduction implements Listener {
         if (e.isFromBonemeal()) {
             return;
         }
-        
-        PylonSet pylonSet = plugin.getPylons(e.getWorld());
-        EnergyField energyField = pylonSet.getEnergyField();
-        
-        double drain = pylonSet.energyDrainAtPoint(e.getLocation().getX(), e.getLocation().getZ());
-        double energy = energyField.energyAt(e.getLocation().getX(), e.getLocation().getZ());
-        double chance = (1.0 - drain) * energy * treeReductionMax;
-        
-        if (chance < 1.0) {
-            if (plugin.getPluginRandom().nextDouble() >= chance) {
-                plugin.info("Growth event cancelled, chance was " + Double.toString(chance));
-                e.setCancelled(true);
-            }
+        if (shouldCancelGrowth(e.getLocation(), treeReductionMax)) {
+            e.setCancelled(true);
         }
     }
 }

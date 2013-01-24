@@ -35,20 +35,22 @@ public class TowerDamage implements Listener {
     }
     
     private boolean checkSensitiveBlock(List<Pylon> possiblyDamagedPylons, BlockEvent e) {
-        int x = e.getBlock().getX();
-        int y = e.getBlock().getY();
-        int z = e.getBlock().getZ();
+        Block block = e.getBlock();
+        World world = block.getWorld();
+        int x = block.getX();
+        int y = block.getY() + 1;
+        int z = block.getZ();
         
         for (Pylon pylon : possiblyDamagedPylons) {
-            if (pylon.getX() == x && pylon.getY() == y + 1 && pylon.getZ() == z) {
+            if (pylon.getX() == x && pylon.getY() == y && pylon.getZ() == z) {
                 // Is the glow block
-                plugin.deactivatePylon(pylon, e.getBlock().getWorld());
+                plugin.deactivatePylon(pylon, world);
                 return true;
             }
         }
         return false;
     }
-    
+
     private boolean checkSensitiveBlock(List<Pylon> possiblyDamagedPylons, BlockEvent e, AABB checkZone) {
         boolean result = false;
         for (Pylon pylon : possiblyDamagedPylons) {
@@ -64,9 +66,10 @@ public class TowerDamage implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockBreak(final BlockBreakEvent e) {
         try {
-            final World world = e.getBlock().getWorld();
+            final Block block = e.getBlock();
+            final World world = block.getWorld();
             final PylonSet pylons = plugin.getPylons(world);
-            final List<Pylon> possiblyDamagedPylons = pylons.pylonsAround(e.getBlock().getX(), e.getBlock().getY(), e.getBlock().getZ());
+            final List<Pylon> possiblyDamagedPylons = pylons.pylonsAround(block.getX(), block.getY(), block.getZ());
             
             if (!possiblyDamagedPylons.isEmpty()) {
                 if (checkSensitiveBlock(possiblyDamagedPylons, e)) {
@@ -74,7 +77,7 @@ public class TowerDamage implements Listener {
                     return;
                 }
                 
-                scheduleStructureCheck(e.getBlock().getWorld(), possiblyDamagedPylons);
+                scheduleStructureCheck(world, possiblyDamagedPylons);
             }
         } catch (RuntimeException ex) {
             plugin.severe("Error with block break event");
@@ -83,15 +86,17 @@ public class TowerDamage implements Listener {
         }
     }
     
-    
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void explosion(EntityExplodeEvent eee) {
         try {
             AABB explosionZone = null;
             for (Block block : eee.blockList()) {
                 AABB blockZone = new AABB();
-                blockZone.setMinCorner(block.getX(), block.getY(), block.getZ());
-                blockZone.setMaxCorner(block.getX(), block.getY(), block.getZ());
+                int x = block.getX();
+                int y = block.getY();
+                int z = block.getZ();
+                blockZone.setMinCorner(x, y, z);
+                blockZone.setMaxCorner(x, y, z);
                 if (explosionZone == null) {
                     explosionZone = blockZone;
                 } else {
@@ -100,16 +105,20 @@ public class TowerDamage implements Listener {
             }
             
             if (explosionZone != null) {
-                final List<Pylon> possiblyDamagedPylons = plugin.getPylons(eee.getEntity().getWorld()).pylonsAround(explosionZone);
+                World world = eee.getEntity().getWorld();
+                final List<Pylon> possiblyDamagedPylons = plugin.getPylons(world).pylonsAround(explosionZone);
                 if (!possiblyDamagedPylons.isEmpty()) {
                     Set<Block> cancelBlocks = new HashSet<Block>();
                     Set<Pylon> cancelPylons = new HashSet<Pylon>();
                     
-                    for (Pylon pylon : possiblyDamagedPylons) {    
+                    for (Pylon pylon : possiblyDamagedPylons) {
+                        int pyX = pylon.getX();
+                        int pyY = pylon.getY() - 1;
+                        int pyZ = pylon.getZ();
                         for (Block block : eee.blockList()) {
-                            if (block.getX() == pylon.getX() && block.getY() == (pylon.getY() - 1) && block.getZ() == pylon.getZ()) {
+                            if (block.getX() == pyX && block.getY() == pyY && block.getZ() == pyZ) {
                                 // Is the glow block
-                                plugin.deactivatePylon(pylon, block.getWorld());
+                                plugin.deactivatePylon(pylon, world);
                                 cancelBlocks.add(block);
                                 cancelPylons.add(pylon);
                             }
@@ -119,7 +128,7 @@ public class TowerDamage implements Listener {
                     eee.blockList().removeAll(cancelBlocks);
                     possiblyDamagedPylons.removeAll(cancelPylons);
                     
-                    scheduleStructureCheck(eee.getEntity().getWorld(), possiblyDamagedPylons);
+                    scheduleStructureCheck(world, possiblyDamagedPylons);
                 }
             }
         } catch (RuntimeException ex) {
@@ -189,9 +198,10 @@ public class TowerDamage implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void blockBurn(BlockBurnEvent bbe) {
         try {
-            final World world = bbe.getBlock().getWorld();
+            final Block block = bbe.getBlock();
+            final World world = block.getWorld();
             final PylonSet pylons = plugin.getPylons(world);
-            final List<Pylon> possiblyDamagedPylons = pylons.pylonsAround(bbe.getBlock().getX(), bbe.getBlock().getY(), bbe.getBlock().getZ());
+            final List<Pylon> possiblyDamagedPylons = pylons.pylonsAround(block.getX(), block.getY(), block.getZ());
             
             if (!possiblyDamagedPylons.isEmpty()) {
                 if (checkSensitiveBlock(possiblyDamagedPylons, bbe)) {
@@ -199,7 +209,7 @@ public class TowerDamage implements Listener {
                     return;
                 }
                 
-                scheduleStructureCheck(bbe.getBlock().getWorld(), possiblyDamagedPylons);
+                scheduleStructureCheck(world, possiblyDamagedPylons);
             }
         } catch (RuntimeException ex) {
             plugin.severe("Error with block burn event");
