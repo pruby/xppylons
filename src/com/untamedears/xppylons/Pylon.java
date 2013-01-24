@@ -102,6 +102,9 @@ public class Pylon implements BoundedObject {
         } else {
             player.sendMessage("Not enough XP to fill bottles");
         }
+        
+        // Know this is deprecated, but without it has major UI glitches with inventory out of sync.
+        player.updateInventory();
     }
     
     public void recalculateXpRate() {
