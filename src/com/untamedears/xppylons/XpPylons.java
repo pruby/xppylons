@@ -173,10 +173,13 @@ public class XpPylons extends JavaPlugin implements Listener {
                 // Activate/deactivate pylon
                 togglePylon(block, e.getPlayer());
             } else if (e.getAction() == Action.RIGHT_CLICK_BLOCK && materialInHand == Material.GLASS_BOTTLE.getId() && clickedBlockType == interactionBlockId) {
-                Pylon existingPylon = getPylons(block.getWorld()).pylonAt(block.getX(), block.getY(), block.getZ());
-                if (existingPylon != null) {
-                    // Fill bottles
-                    existingPylon.dispenseXp(e.getPlayer());
+                PylonSet pylonSet = getPylons(block.getWorld());
+                if (pylonSet != null) {
+                    Pylon existingPylon = pylonSet.pylonAt(block.getX(), block.getY(), block.getZ());
+                    if (existingPylon != null) {
+                        // Fill bottles
+                        existingPylon.dispenseXp(e.getPlayer());
+                    }
                 }
             }
         } catch (RuntimeException ex) {
@@ -189,8 +192,13 @@ public class XpPylons extends JavaPlugin implements Listener {
     
     public void activatePylon(Block block, int levels) {
         World world = block.getWorld();
-        Pylon newPylon = new Pylon(getPylons(world), block.getX(), block.getY(), block.getZ(), levels);
-        getPylons(world).addPylon(newPylon);
+        PylonSet pylonSet = getPylons(world);
+        if (pylonSet == null) {
+            severe("Attempt to activate pylon in a world which doesn't support them");
+        }
+        
+        Pylon newPylon = new Pylon(pylonSet, block.getX(), block.getY(), block.getZ(), levels);
+        pylonSet.addPylon(newPylon);
         Block glowBlock = block.getRelative(0, -1, 0);
         if (glowBlock != null) {
             glowBlock.setType(Material.GLOWSTONE);
@@ -198,13 +206,18 @@ public class XpPylons extends JavaPlugin implements Listener {
     }
     
     public void deactivatePylon(Pylon pylon, World world) {
+        PylonSet pylonSet = getPylons(world);
+        if (pylonSet == null) {
+            severe("Attempt to deactivate pylon in a world which doesn't support them");
+        }
+        
         Block glowBlock = world.getBlockAt(pylon.getX(), pylon.getY() - 1, pylon.getZ());
         if (glowBlock != null) {
             if (glowBlock.getType() == Material.GLOWSTONE) {
                 glowBlock.setTypeId(pylonPattern.getOriginalGlowBlockTypeId());
             }
         }
-        getPylons(world).removePylon(pylon);
+        pylonSet.removePylon(pylon);
     }
     
     public PylonPattern getPylonPattern() {
@@ -213,6 +226,14 @@ public class XpPylons extends JavaPlugin implements Listener {
     
     public void togglePylon(Block block, Player player) {
           World world = block.getWorld();
+          PylonSet pylonSet = getPylons(world);
+          if (pylonSet == null) {
+              info("Attempt to create pylon in a pylon-less world at " +
+                  Double.toString(block.getX()) +
+                  ", " +
+                  Double.toString(block.getZ())
+              );
+          }
           Pylon existingPylon = getPylons(world).pylonAt(block.getX(), block.getY(), block.getZ());
           if (existingPylon != null) {
               player.sendMessage("Deactivated pylon");
