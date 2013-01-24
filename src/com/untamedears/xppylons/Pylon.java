@@ -10,7 +10,9 @@ import java.io.IOException;
 import com.untamedears.xppylons.rtree.AABB;
 import com.untamedears.xppylons.rtree.BoundedObject;
 import org.bukkit.entity.Player;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
@@ -96,8 +98,10 @@ public class Pylon implements BoundedObject {
             /* Give XP bottles. If inventory full, drop in world. */
             PlayerInventory inventory = player.getInventory();
             HashMap<Integer, ItemStack> spillover = inventory.addItem(new ItemStack(Material.EXP_BOTTLE, amount));
+            World world = player.getWorld();
+            Location location = player.getLocation();
             for (ItemStack overStack : spillover.values()) {
-                player.getWorld().dropItem(player.getLocation(), overStack);
+                world.dropItem(location, overStack);
             }
         } else {
             player.sendMessage("Not enough XP to fill bottles");
