@@ -1,6 +1,7 @@
 package com.untamedears.xppylons.listener;
 
 import org.bukkit.Material;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
@@ -20,21 +21,29 @@ public class FishReduction implements Listener {
         fishReductionMax = plugin.getConfig().getDouble("negativeEffects.fishReduction");
     }
     
+    public boolean shouldCancelFishing(Location location) {
+        PylonSet pylonSet = plugin.getPylons(location.getWorld());
+        if (pylonSet != null) {
+            EnergyField energyField = pylonSet.getEnergyField();
+            double drain = pylonSet.energyDrainAtPoint(location.getX(), location.getZ());
+            double energy = energyField.energyAt(location.getX(), location.getZ());
+            double chance = (1.0 - drain) * energy * fishReductionMax;
+            
+            if (chance < 1.0) {
+                if (plugin.getPluginRandom().nextDouble() >= chance) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
     @EventHandler(ignoreCancelled = true)
     public void fishing(PlayerFishEvent e) {
         if (e.getState() == PlayerFishEvent.State.CAUGHT_FISH) {
-            PylonSet pylonSet = plugin.getPylons(e.getPlayer().getWorld());
-            if (pylonSet != null) {
-                EnergyField energyField = pylonSet.getEnergyField();
-                double drain = pylonSet.energyDrainAtPoint(e.getPlayer().getLocation().getX(), e.getPlayer().getLocation().getZ());
-                double energy = energyField.energyAt(e.getPlayer().getLocation().getX(), e.getPlayer().getLocation().getZ());
-                double chance = (1.0 - drain) * energy * fishReductionMax;
-                
-                if (chance < 1.0) {
-                    if (plugin.getPluginRandom().nextDouble() >= chance) {
-                        e.setCancelled(true);
-                    }
-                }
+            Location location = e.getPlayer().getLocation();
+            if (shouldCancelFishing(location)) {
+                e.setCancelled(true);
             }
         }
     }
