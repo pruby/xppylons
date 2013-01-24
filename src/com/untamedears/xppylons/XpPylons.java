@@ -40,6 +40,7 @@ import com.untamedears.xppylons.task.AccumulateXP;
 import com.untamedears.xppylons.task.RecalculateXPRate;
 import com.untamedears.xppylons.listener.GrowthReduction;
 import com.untamedears.xppylons.listener.FishReduction;
+import com.untamedears.xppylons.listener.PassiveMobReduction;
 import com.untamedears.xppylons.listener.Divining;
 import com.untamedears.xppylons.listener.TowerDamage;
 
@@ -110,6 +111,7 @@ public class XpPylons extends JavaPlugin implements Listener {
             pm.registerEvents(this, this);
             pm.registerEvents(new GrowthReduction(this), this);
             pm.registerEvents(new FishReduction(this), this);
+            pm.registerEvents(new PassiveMobReduction(this), this);
             pm.registerEvents(new Divining(this), this);
             pm.registerEvents(new TowerDamage(this), this);
         }

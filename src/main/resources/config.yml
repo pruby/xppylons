@@ -28,6 +28,9 @@ negativeEffects:
   cropGrowthReduction: 1.0 # Max chance to block
   treeGrowthReduction: 1.0
   fishReduction: 1.0
+  naturalSpawnReduction: 1.0
+  eggSpawnReduction: 0.7
+  breedingReduction: 0.5
 patterns:
   base: |
     **O**
