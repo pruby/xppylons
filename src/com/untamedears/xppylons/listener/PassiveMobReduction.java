@@ -33,7 +33,7 @@ public class PassiveMobReduction implements Listener {
             EnergyField energyField = pylonSet.getEnergyField();
             double drain = pylonSet.energyDrainAtPoint(location.getX(), location.getZ());
             double energy = energyField.energyAt(location.getX(), location.getZ());
-            double chance = (1.0 - drain) * energy / max_reduction;
+            double chance = (1.0 - drain) * energy * max_reduction + (1.0 - max_reduction);
             
             if (chance < 1.0) {
                 if (plugin.getPluginRandom().nextDouble() >= chance) {

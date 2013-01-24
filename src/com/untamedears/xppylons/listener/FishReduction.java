@@ -27,7 +27,7 @@ public class FishReduction implements Listener {
             EnergyField energyField = pylonSet.getEnergyField();
             double drain = pylonSet.energyDrainAtPoint(location.getX(), location.getZ());
             double energy = energyField.energyAt(location.getX(), location.getZ());
-            double chance = (1.0 - drain) * energy / fishReductionMax;
+            double chance = (1.0 - drain) * energy * fishReductionMax + (1.0 - fishReductionMax);
             
             if (chance < 1.0) {
                 if (plugin.getPluginRandom().nextDouble() >= chance) {
