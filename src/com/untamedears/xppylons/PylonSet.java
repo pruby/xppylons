@@ -59,6 +59,7 @@ public class PylonSet {
         pylonInfluences.query(overlaps, pylon.getInfluence().getBounds());
         
         for (BoundedObject overlap : overlaps) {
+            assert(overlap instanceof Pylon.EffectBounds);
             Pylon affectedPylon = ((Pylon.EffectBounds) overlap).getPylon();
             affectedPylon.recalculateXpRate();
         }
@@ -89,6 +90,8 @@ public class PylonSet {
         
         LinkedList<Pylon> pylons = new LinkedList<Pylon>();
         for (BoundedObject pylonAsBox : pylonsAsBoxes) {
+            assert(pylonAsBox instanceof Pylon);
+            
             pylons.add((Pylon) pylonAsBox);
         }
         
@@ -102,6 +105,8 @@ public class PylonSet {
         
         LinkedList<Pylon> pylons = new LinkedList<Pylon>();
         for (BoundedObject pylonAsBox : pylonsAsBoxes) {
+            assert(pylonAsBox instanceof Pylon);
+            
             pylons.add((Pylon) pylonAsBox);
         }
         
@@ -115,6 +120,8 @@ public class PylonSet {
         pylonInfluences.query(influences, x, 60, z);
         
         for (BoundedObject influence : influences) {
+            assert(influence instanceof Pylon.EffectBounds);
+            
             Pylon.EffectBounds bounds = (Pylon.EffectBounds) influence;
             if (bounds.affects(x, z)) {
               Pylon affectingPylon = bounds.getPylon();
