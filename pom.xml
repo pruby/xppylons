@@ -6,7 +6,7 @@
 
     <groupId>com.untamedears.xppylons</groupId>
     <artifactId>xppylons</artifactId>
-    <version>0.1</version>
+    <version>0.2</version>
     <packaging>jar</packaging>
 
     <name>XP Pylons</name>
