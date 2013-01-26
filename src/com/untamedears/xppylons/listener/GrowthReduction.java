@@ -50,25 +50,10 @@ public class GrowthReduction implements Listener {
             
             if (location.getWorld().getHighestBlockYAt(location) == location.getY()) {
                 // Sky is visible
-                divideBonusXp(pylonSet, x, z, bonusXp);
+                pylonSet.divideBonusXp(x, z, bonusXp);
             }
         }
         return false;
-    }
-    
-    private void divideBonusXp(PylonSet pylonSet, double x, double z, double bonusXp) {
-        if (bonusXp > 0.0) {
-            List<Pylon> pylonsAffecting = pylonSet.pylonsInfluencing(x, z);
-            double totalStrengths = pylonSet.getTotalStrengthAt(x, z);
-            double drain = pylonSet.energyDrainAtPoint(x, z);
-            
-            if (totalStrengths > 0.0) {
-                for (Pylon pylon : pylonsAffecting) {
-                    double strengthAtPoint = pylon.getInfluence().getStrengthAt(x, z);
-                    pylon.addXp(bonusXp * strengthAtPoint * drain / totalStrengths);
-                }
-            }
-        }
     }
 
     @EventHandler(ignoreCancelled = true)

@@ -162,6 +162,21 @@ public class PylonSet {
         }
     }
     
+    public void divideBonusXp(double x, double z, double bonusXp) {
+        if (bonusXp > 0.0) {
+            List<Pylon> pylonsAffecting = pylonsInfluencing(x, z);
+            double totalStrengths = getTotalStrengthAt(x, z);
+            double drain = energyDrainAtPoint(x, z);
+            
+            if (totalStrengths > 0.0) {
+                for (Pylon pylon : pylonsAffecting) {
+                    double strengthAtPoint = pylon.getInfluence().getStrengthAt(x, z);
+                    pylon.addXp(bonusXp * strengthAtPoint * drain / totalStrengths);
+                }
+            }
+        }
+    }
+    
     public PylonConfig getConfig() {
         return config;
     }
