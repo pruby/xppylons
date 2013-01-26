@@ -1,6 +1,6 @@
 name: "XP Pylons"
 main: com.untamedears.xppylons.XpPylons
-version: 0.1
+version: 0.3
 description: "XP harvesting pylons"
 author: pruby
 database: false

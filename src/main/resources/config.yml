@@ -26,9 +26,9 @@ items:
   activation: 345 # Compass
 negativeEffects:
   cropGrowthReduction: 1.0 # Max chance to block
-  cropGrowthBonusXp: 2.0
+  cropGrowthBonusXp: 1.0
   treeGrowthReduction: 1.0
-  treeGrowthBonusXp: 5.0
+  treeGrowthBonusXp: 3.0
   fishReduction: 1.0
   naturalSpawnReduction: 1.0
   eggSpawnReduction: 0.7
