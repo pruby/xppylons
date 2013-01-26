@@ -1,0 +1,24 @@
+0.3
+===
+
+* Similar bug for null PylonSet handling entity explosions in nether/end.
+* Made pylon xp rate recalculation an async task.
+* Periodic save of pylon data.
+* Bonus exp when crops & trees grow within the field.
+
+0.2
+===
+
+* Reduction of fishing success in drained field.
+* Reduction of spawning of passive mobs by natural, eggs and breeding.
+* Fix bug with null PylonSet in nether/end for block break.
+* Code tidying.
+* Change pylon field strength to decrease linearly from centre to radius.
+
+0.1
+===
+
+* Initial release
+* Finding high energy spots by examining plants.
+* Tower structure, basic function, damage detection.
+* Crop growth negative effects.
