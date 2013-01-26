@@ -149,10 +149,16 @@ public class TowerDamage implements Listener {
     public void pistonExtend(BlockPistonExtendEvent bpee) {
         try {
             if (bpee.getLength() > 0) {
+                
                 AABB firstBlockZone = new AABB();
                 Block firstBlock = bpee.getBlock().getRelative(bpee.getDirection(), 1);
                 firstBlockZone.setMinCorner(firstBlock.getX(), firstBlock.getY(), firstBlock.getZ());
                 firstBlockZone.setMaxCorner(firstBlock.getX(), firstBlock.getY(), firstBlock.getZ());
+                
+                PylonSet pylons = plugin.getPylons(firstBlock.getWorld());
+                if (pylons == null) {
+                    return;
+                }
                 
                 Block lastBlock = bpee.getBlock().getRelative(bpee.getDirection(), 1 + bpee.getLength());
                 AABB lastBlockZone = new AABB();
@@ -161,7 +167,7 @@ public class TowerDamage implements Listener {
                 
                 AABB movementZone = firstBlockZone.merge(lastBlockZone);
                 
-                final List<Pylon> possiblyDamagedPylons = plugin.getPylons(firstBlock.getWorld()).pylonsAround(movementZone);
+                final List<Pylon> possiblyDamagedPylons = pylons.pylonsAround(movementZone);
                 if (!possiblyDamagedPylons.isEmpty()) {
                     if (checkSensitiveBlock(possiblyDamagedPylons, bpee, movementZone)) {
                         bpee.setCancelled(true);
@@ -185,8 +191,13 @@ public class TowerDamage implements Listener {
             
             // the block that the piston moved
             Block moved = bpre.getBlock().getRelative(direction, 2);
+                
+            PylonSet pylons = plugin.getPylons(moved.getWorld());
+            if (pylons == null) {
+                return;
+            }
             
-            final List<Pylon> possiblyDamagedPylons = plugin.getPylons(moved.getWorld()).pylonsAround(moved.getX(), moved.getY(), moved.getZ());
+            final List<Pylon> possiblyDamagedPylons = pylons.pylonsAround(moved.getX(), moved.getY(), moved.getZ());
             if (!possiblyDamagedPylons.isEmpty()) {
                 if (checkSensitiveBlock(possiblyDamagedPylons, bpre)) {
                     bpre.setCancelled(true);
@@ -208,15 +219,17 @@ public class TowerDamage implements Listener {
             final Block block = bbe.getBlock();
             final World world = block.getWorld();
             final PylonSet pylons = plugin.getPylons(world);
-            final List<Pylon> possiblyDamagedPylons = pylons.pylonsAround(block.getX(), block.getY(), block.getZ());
-            
-            if (!possiblyDamagedPylons.isEmpty()) {
-                if (checkSensitiveBlock(possiblyDamagedPylons, bbe)) {
-                    bbe.setCancelled(true);
-                    return;
-                }
+            if (pylons != null) {
+                final List<Pylon> possiblyDamagedPylons = pylons.pylonsAround(block.getX(), block.getY(), block.getZ());
                 
-                scheduleStructureCheck(world, possiblyDamagedPylons);
+                if (!possiblyDamagedPylons.isEmpty()) {
+                    if (checkSensitiveBlock(possiblyDamagedPylons, bbe)) {
+                        bbe.setCancelled(true);
+                        return;
+                    }
+                    
+                    scheduleStructureCheck(world, possiblyDamagedPylons);
+                }
             }
         } catch (RuntimeException ex) {
             plugin.severe("Error with block burn event");
