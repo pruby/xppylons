@@ -60,10 +60,12 @@ public class GrowthReduction implements Listener {
         if (bonusXp > 0.0) {
             List<Pylon> pylonsAffecting = pylonSet.pylonsInfluencing(x, z);
             double totalStrengths = pylonSet.getTotalStrengthAt(x, z);
+            double drain = pylonSet.energyDrainAtPoint(x, z);
+            
             if (totalStrengths > 0.0) {
                 for (Pylon pylon : pylonsAffecting) {
                     double strengthAtPoint = pylon.getInfluence().getStrengthAt(x, z);
-                    pylon.addXp(bonusXp * strengthAtPoint / totalStrengths);
+                    pylon.addXp(bonusXp * strengthAtPoint * drain / totalStrengths);
                 }
             }
         }
