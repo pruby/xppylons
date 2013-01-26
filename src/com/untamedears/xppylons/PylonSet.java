@@ -147,6 +147,20 @@ public class PylonSet {
         
         return 1.0 - residual;
     }
+        
+    public double getTotalStrengthAt(double x, double z) {
+        double totalStrength = 0.0;
+        for (Pylon other : pylonsInfluencing(x, z)) {
+            double strengthAtPoint = other.getInfluence().getStrengthAt(x, z);
+            totalStrength += strengthAtPoint;
+        }
+        
+        if (totalStrength <= 0.0) {
+            return 0.0;
+        } else {
+            return totalStrength;
+        }
+    }
     
     public PylonConfig getConfig() {
         return config;

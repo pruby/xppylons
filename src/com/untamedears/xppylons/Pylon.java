@@ -131,8 +131,12 @@ public class Pylon implements BoundedObject {
         return xpRate;
     }
     
-    public synchronized void accumulateXp() {
-        xp += xpRate;
+    public void accumulateXp() {
+        addXp(xpRate);
+    }
+    
+    public synchronized void addXp(double amount) {
+        xp += amount;
         if (xp > cluster.getConfig().getMaxStoredXp()) {
             xp = cluster.getConfig().getMaxStoredXp();
         }
