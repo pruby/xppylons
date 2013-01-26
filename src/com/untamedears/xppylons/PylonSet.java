@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.LinkedList;
 
+import com.untamedears.xppylons.task.RecalculateXPRate;
 import com.untamedears.xppylons.rtree.BoundedObject;
 import com.untamedears.xppylons.rtree.RTree;
 import com.untamedears.xppylons.rtree.AABB;
@@ -58,11 +59,15 @@ public class PylonSet {
         List<BoundedObject> overlaps = new LinkedList<BoundedObject>();
         pylonInfluences.query(overlaps, pylon.getInfluence().getBounds());
         
+        List<Pylon> affectedPylons = new LinkedList<Pylon>();
+        
         for (BoundedObject overlap : overlaps) {
             assert(overlap instanceof Pylon.EffectBounds);
             Pylon affectedPylon = ((Pylon.EffectBounds) overlap).getPylon();
-            affectedPylon.recalculateXpRate();
+            affectedPylons.add(affectedPylon);
         }
+        
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, new RecalculateXPRate(plugin, affectedPylons));
     }
     
     public EnergyField getEnergyField() {
