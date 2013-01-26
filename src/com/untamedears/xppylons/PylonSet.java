@@ -138,19 +138,27 @@ public class PylonSet {
     }
     
     public double energyDrainAtPoint(double x, double z) {
+        return energyDrainAtPoint(x, z, pylonsInfluencing(x, z));
+    }
+    
+    public double energyDrainAtPoint(double x, double z, List<Pylon> pylons) {
         double residual = 1.0;
         
-        for (Pylon pylon : pylonsInfluencing(x, z)) {
+        for (Pylon pylon : pylons) {
             double strengthAtPoint = pylon.getInfluence().getStrengthAt(x, z);
             residual = residual * (1.0 - strengthAtPoint);
         }
         
         return 1.0 - residual;
     }
-        
+    
     public double getTotalStrengthAt(double x, double z) {
+        return getTotalStrengthAt(x, z, pylonsInfluencing(x, z));
+    }
+        
+    public double getTotalStrengthAt(double x, double z, List<Pylon> pylons) {
         double totalStrength = 0.0;
-        for (Pylon other : pylonsInfluencing(x, z)) {
+        for (Pylon other : pylons) {
             double strengthAtPoint = other.getInfluence().getStrengthAt(x, z);
             totalStrength += strengthAtPoint;
         }
@@ -165,8 +173,9 @@ public class PylonSet {
     public void divideBonusXp(double x, double z, double bonusXp) {
         if (bonusXp > 0.0) {
             List<Pylon> pylonsAffecting = pylonsInfluencing(x, z);
-            double totalStrengths = getTotalStrengthAt(x, z);
-            double drain = energyDrainAtPoint(x, z);
+            
+            double totalStrengths = getTotalStrengthAt(x, z, pylonsAffecting);
+            double drain = energyDrainAtPoint(x, z, pylonsAffecting);
             
             if (totalStrengths > 0.0) {
                 for (Pylon pylon : pylonsAffecting) {
