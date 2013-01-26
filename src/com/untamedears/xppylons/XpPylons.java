@@ -126,7 +126,7 @@ public class XpPylons extends JavaPlugin implements Listener {
         accumulateXpTask = getServer().getScheduler().scheduleAsyncRepeatingTask(this, new AccumulateXP(this), accumulateInterval, accumulateInterval);
         
         long recalculateInterval = getConfig().getInt("pylons.xpCalculationInterval") * 20L;
-        recalculateXpTask = getServer().getScheduler().scheduleSyncRepeatingTask(this, new RecalculateXPRate(this), recalculateInterval, recalculateInterval);
+        recalculateXpTask = getServer().getScheduler().scheduleAsyncRepeatingTask(this, new RecalculateXPRate(this), recalculateInterval, recalculateInterval);
     }
     
     private void initWorld(World world) {

@@ -1,5 +1,7 @@
 package com.untamedears.xppylons.task;
 
+import java.util.Set;
+
 import com.untamedears.xppylons.XpPylons;
 import com.untamedears.xppylons.PylonSet;
 import com.untamedears.xppylons.Pylon;
@@ -15,7 +17,9 @@ public class RecalculateXPRate implements Runnable {
     public void run() {
         for (World world : plugin.pylonWorlds()) {
             PylonSet pylonSet = plugin.getPylons(world);
-            for (Pylon pylon : pylonSet.getPylonSet()) {
+            Set<Pylon> pylons = pylonSet.getPylonSet();
+            
+            for (Pylon pylon : pylons) {
                 pylon.recalculateXpRate();
             }
         }

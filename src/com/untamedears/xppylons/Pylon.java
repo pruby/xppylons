@@ -78,7 +78,7 @@ public class Pylon implements BoundedObject {
         return influence;
     }
     
-    public void dispenseXp(Player player) {
+    public synchronized void dispenseXp(Player player) {
         int xpPerBottle = cluster.getConfig().getXpPerBottle();
         int maxBottles = (int) (xp / xpPerBottle);
         ItemStack stack = player.getItemInHand();
@@ -131,7 +131,7 @@ public class Pylon implements BoundedObject {
         return xpRate;
     }
     
-    public void accumulateXp() {
+    public synchronized void accumulateXp() {
         xp += xpRate;
         if (xp > cluster.getConfig().getMaxStoredXp()) {
             xp = cluster.getConfig().getMaxStoredXp();
