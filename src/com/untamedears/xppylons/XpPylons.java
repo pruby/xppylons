@@ -36,6 +36,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
+import com.untamedears.xppylons.task.SavePylons;
 import com.untamedears.xppylons.task.AccumulateXP;
 import com.untamedears.xppylons.task.RecalculateXPRate;
 import com.untamedears.xppylons.listener.GrowthReduction;
@@ -59,6 +60,7 @@ public class XpPylons extends JavaPlugin implements Listener {
     
     private int accumulateXpTask;
     private int recalculateXpTask;
+    private int savePylonsTask;
     
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args){
         return true;
@@ -127,6 +129,9 @@ public class XpPylons extends JavaPlugin implements Listener {
         
         long recalculateInterval = getConfig().getInt("pylons.xpCalculationInterval") * 20L;
         recalculateXpTask = getServer().getScheduler().scheduleAsyncRepeatingTask(this, new RecalculateXPRate(this), recalculateInterval, recalculateInterval);
+        
+        long savePylonsInterval = getConfig().getInt("data.saveInterval") * 20L;
+        savePylonsTask = getServer().getScheduler().scheduleAsyncRepeatingTask(this, new SavePylons(this), savePylonsInterval, savePylonsInterval);
     }
     
     private void initWorld(World world) {

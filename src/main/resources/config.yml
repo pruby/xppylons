@@ -50,3 +50,5 @@ patterns:
     LLDLL
     *ILI*
     **L**
+data:
+  saveInterval: 600
