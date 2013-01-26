@@ -91,6 +91,12 @@ public class TowerDamage implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void explosion(EntityExplodeEvent eee) {
         try {
+            World world = eee.getEntity().getWorld();
+            PylonSet pylons = plugin.getPylons(world);
+            if (pylons == null) {
+                return;
+            }
+            
             AABB explosionZone = null;
             for (Block block : eee.blockList()) {
                 AABB blockZone = new AABB();
@@ -107,7 +113,6 @@ public class TowerDamage implements Listener {
             }
             
             if (explosionZone != null) {
-                World world = eee.getEntity().getWorld();
                 final List<Pylon> possiblyDamagedPylons = plugin.getPylons(world).pylonsAround(explosionZone);
                 if (!possiblyDamagedPylons.isEmpty()) {
                     Set<Block> cancelBlocks = new HashSet<Block>();
@@ -134,7 +139,7 @@ public class TowerDamage implements Listener {
                 }
             }
         } catch (RuntimeException ex) {
-            plugin.severe("Error with piston extend event");
+            plugin.severe("Error with explosion event");
             ex.printStackTrace();
             throw ex;
         }
