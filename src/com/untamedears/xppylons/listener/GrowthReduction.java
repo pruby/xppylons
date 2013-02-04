@@ -20,6 +20,7 @@ public class GrowthReduction implements Listener {
     private XpPylons plugin;
     private double growthReductionMax;
     private double grassReductionMax;
+    private double grassDiebackMax;
     private double treeReductionMax;
     private double cropGrowthBonusXp;
     private double treeGrowthBonusXp;
@@ -29,6 +30,7 @@ public class GrowthReduction implements Listener {
         growthReductionMax = plugin.getConfig().getDouble("negativeEffects.cropGrowthReduction");
         cropGrowthBonusXp = plugin.getConfig().getDouble("negativeEffects.cropGrowthBonusXp");
         grassReductionMax = plugin.getConfig().getDouble("negativeEffects.grassGrowthReduction");
+        grassDiebackMax = plugin.getConfig().getDouble("negativeEffects.grassDieback");
         treeReductionMax = plugin.getConfig().getDouble("negativeEffects.treeGrowthReduction");
         treeGrowthBonusXp = plugin.getConfig().getDouble("negativeEffects.treeGrowthBonusXp");
     }
@@ -71,9 +73,13 @@ public class GrowthReduction implements Listener {
         int sourceTypeId = e.getSource().getTypeId();
         if (sourceTypeId == Material.GRASS.getId() || sourceTypeId == Material.MYCEL.getId()) {
             if (shouldCancelGrowth(e.getBlock().getLocation(), grassReductionMax, 0.0)) {
-                // Kill the source grass instead of growing
-                e.getSource().setType(Material.DIRT);
+                // Don't grow
                 e.setCancelled(true);
+                
+                if (plugin.getPluginRandom().nextDouble() < grassDiebackMax) {
+                    // Kill the source grass
+                    e.getSource().setType(Material.DIRT);
+                }
             }
         }
     }
