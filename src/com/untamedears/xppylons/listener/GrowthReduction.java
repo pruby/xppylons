@@ -8,6 +8,7 @@ import org.bukkit.block.Block;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockGrowEvent;
+import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 
 import com.untamedears.xppylons.XpPylons;
@@ -18,6 +19,7 @@ import com.untamedears.xppylons.EnergyField;
 public class GrowthReduction implements Listener {
     private XpPylons plugin;
     private double growthReductionMax;
+    private double grassReductionMax;
     private double treeReductionMax;
     private double cropGrowthBonusXp;
     private double treeGrowthBonusXp;
@@ -26,6 +28,7 @@ public class GrowthReduction implements Listener {
         this.plugin = plugin;
         growthReductionMax = plugin.getConfig().getDouble("negativeEffects.cropGrowthReduction");
         cropGrowthBonusXp = plugin.getConfig().getDouble("negativeEffects.cropGrowthBonusXp");
+        grassReductionMax = plugin.getConfig().getDouble("negativeEffects.grassGrowthReduction");
         treeReductionMax = plugin.getConfig().getDouble("negativeEffects.treeGrowthReduction");
         treeGrowthBonusXp = plugin.getConfig().getDouble("negativeEffects.treeGrowthBonusXp");
     }
@@ -60,6 +63,18 @@ public class GrowthReduction implements Listener {
     public void growBlock(BlockGrowEvent e) {
         if (shouldCancelGrowth(e.getBlock().getLocation(), growthReductionMax, cropGrowthBonusXp)) {
             e.setCancelled(true);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void blockSpread(BlockSpreadEvent e) {
+        int sourceTypeId = e.getSource().getTypeId();
+        if (sourceTypeId == Material.GRASS.getId() || sourceTypeId == Material.MYCEL.getId()) {
+            if (shouldCancelGrowth(e.getBlock().getLocation(), grassReductionMax, 0.0)) {
+                // Kill the source grass instead of growing
+                e.getSource().setType(Material.DIRT);
+                e.setCancelled(true);
+            }
         }
     }
 

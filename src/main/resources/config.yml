@@ -27,6 +27,7 @@ items:
 negativeEffects:
   cropGrowthReduction: 1.0 # Max chance to block
   cropGrowthBonusXp: 1.0
+  grassGrowthReduction: 1.0
   treeGrowthReduction: 1.0
   treeGrowthBonusXp: 3.0
   fishReduction: 1.0
